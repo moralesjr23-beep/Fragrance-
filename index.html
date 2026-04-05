@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Vault — AJ's Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Josefin+Sans:wght@100;200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#090806;--parchment:#f4efe6;--gold:#c9a84c;--gold-light:#e8d5a3;--gold-dim:#8a6e2e;
+  --smoke:#181410;--ash:#252018;--char:#1e1a14;--dove:#6b6358;--cream:#ede8dc;
+  --rose:#b05a42;--aqua:#3a7585;--forest:#3d6038;--ab:rgba(201,168,76,0.18);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--ink);color:var(--parchment);font-family:'Josefin Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.7;}
+
+.header{display:flex;align-items:center;justify-content:space-between;padding:20px 42px;border-bottom:1px solid var(–ab);position:sticky;top:0;background:rgba(9,8,6,0.96);backdrop-filter:blur(16px);z-index:100;gap:16px;flex-wrap:wrap;}
+.brand-name{font-family:‘Cormorant Garamond’,serif;font-size:24px;font-weight:300;letter-spacing:.2em;color:var(–gold);text-transform:uppercase;}
+.brand-sub{font-size:7.5px;letter-spacing:.26em;color:var(–dove);text-transform:uppercase;margin-top:1px;}
+.stats-strip{display:flex;gap:24px;align-items:center;}
+.stat{text-align:center;}
+.stat-num{font-family:‘Cormorant Garamond’,serif;font-size:20px;color:var(–gold);display:block;line-height:1;}
+.stat-label{font-size:7px;letter-spacing:.2em;color:var(–dove);text-transform:uppercase;margin-top:2px;}
+.sdiv{width:1px;height:24px;background:var(–ab);}
+.add-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:transparent;border:1px solid var(–gold);color:var(–gold);font-family:‘Josefin Sans’,sans-serif;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.add-btn:hover{background:rgba(201,168,76,.1);}
+
+.nav-bar{display:flex;padding:0 42px;border-bottom:1px solid rgba(201,168,76,.07);background:var(–smoke);overflow-x:auto;}
+.nav-bar::-webkit-scrollbar{display:none;}
+.nav-tab{padding:12px 18px;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(–dove);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;background:none;border-left:none;border-right:none;border-top:none;font-family:‘Josefin Sans’,sans-serif;font-weight:300;}
+.nav-tab:hover{color:var(–gold-light);}
+.nav-tab.active{color:var(–gold);border-bottom-color:var(–gold);}
+
+.main{padding:30px 42px;max-width:1700px;margin:0 auto;}
+.page{display:none;}
+.page.active{display:block;}
+
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap;}
+.sw{position:relative;flex:1;min-width:200px;}
+.sw input{width:100%;background:var(–ash);border:1px solid var(–ab);color:var(–parchment);padding:9px 13px 9px 35px;font-family:‘Josefin Sans’,sans-serif;font-size:10px;letter-spacing:.1em;outline:none;transition:border-color .2s;}
+.sw input:focus{border-color:rgba(201,168,76,.4);}
+.sw input::placeholder{color:var(–dove);}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(–dove);font-size:14px;}
+select{background:var(–ash);border:1px solid var(–ab);color:var(–parchment);padding:9px 11px;font-family:‘Josefin Sans’,sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;outline:none;}
+select option{background:var(–ash);}
+
+.sec-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;}
+.sec-title{font-family:‘Cormorant Garamond’,serif;font-size:21px;font-weight:400;color:var(–cream);letter-spacing:.04em;}
+.sec-ct{font-size:8.5px;letter-spacing:.2em;color:var(–dove);text-transform:uppercase;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:1px;background:rgba(201,168,76,.05);}
+
+.card{background:var(–smoke);padding:19px 21px;cursor:pointer;transition:background .15s;position:relative;overflow:hidden;animation:fu .3s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+.card:hover{background:var(–ash);}
+.card::before{content:’’;position:absolute;left:0;top:0;bottom:0;width:3px;}
+.card.ss::before{background:var(–aqua);}
+.card.fw::before{background:var(–gold-dim);}
+.card.yr::before{background:var(–dove);}
+.card-house{font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:var(–gold-dim);margin-bottom:4px;}
+.card-name{font-family:‘Cormorant Garamond’,serif;font-size:16px;color:var(–cream);line-height:1.2;margin-bottom:4px;}
+.card-insp{font-size:8.5px;color:var(–dove);letter-spacing:.04em;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.tag{font-size:7px;letter-spacing:.14em;text-transform:uppercase;padding:2px 6px;border:1px solid;}
+.td{border-color:rgba(176,90,66,.4);color:var(–rose);}
+.to{border-color:rgba(58,117,133,.4);color:var(–aqua);}
+.te{border-color:rgba(201,168,76,.3);color:var(–gold-dim);}
+.tc{border-color:rgba(107,99,88,.4);color:var(–dove);}
+.ts{border-color:rgba(61,96,56,.4);color:var(–forest);}
+.tsp{border-color:rgba(201,168,76,.55);color:var(–gold);}
+.tsea{border-color:rgba(201,168,76,.1);color:var(–dove);}
+.tbase{border-color:rgba(201,168,76,.5);color:var(–gold);font-size:6.5px;}
+.card-star{position:absolute;top:11px;right:13px;color:var(–gold);font-size:12px;opacity:0;transition:opacity .2s;}
+.card.starred .card-star{opacity:1;}
+.card-del{position:absolute;bottom:9px;right:11px;font-size:10px;color:var(–dove);opacity:0;transition:opacity .2s;background:none;border:none;cursor:pointer;padding:3px;line-height:1;}
+.card:hover .card-del{opacity:1;}
+.card-del:hover{color:var(–rose);}
+
+/* MODAL SHARED */
+.overlay{position:fixed;inset:0;background:rgba(9,8,6,.88);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
+.overlay.hidden{display:none!important;}
+@keyframes sm{from{transform:translateY(16px);opacity:0;}to{transform:none;opacity:1;}}
+.modal,.add-modal,.confirm-box{animation:sm .22s ease;}
+
+/* DETAIL MODAL */
+.modal{background:var(–smoke);border:1px solid var(–ab);max-width:640px;width:92vw;max-height:88vh;overflow-y:auto;position:relative;}
+.modal::-webkit-scrollbar{width:3px;}
+.modal::-webkit-scrollbar-thumb{background:var(–gold-dim);}
+.mh{padding:26px 30px 20px;border-bottom:1px solid rgba(201,168,76,.09);position:relative;}
+.m-house{font-size:7.5px;letter-spacing:.3em;color:var(–gold);text-transform:uppercase;margin-bottom:5px;}
+.m-name{font-family:‘Cormorant Garamond’,serif;font-size:27px;color:var(–cream);line-height:1.1;margin-bottom:5px;}
+.m-insp{font-family:‘Cormorant Garamond’,serif;font-style:italic;font-size:14px;color:var(–dove);}
+.mcl{position:absolute;top:16px;right:20px;background:none;border:none;color:var(–dove);font-size:17px;cursor:pointer;font-family:‘Josefin Sans’,sans-serif;transition:color .2s;padding:4px 8px;}
+.mcl:hover{color:var(–gold);}
+.mb{padding:22px 30px;}
+.row{display:flex;gap:18px;margin-bottom:16px;flex-wrap:wrap;}
+.field{flex:1;min-width:110px;}
+.fl{font-size:7.5px;letter-spacing:.26em;text-transform:uppercase;color:var(–gold-dim);margin-bottom:5px;}
+.fv{font-family:‘Cormorant Garamond’,serif;font-size:14px;color:var(–cream);}
+.mdiv{height:1px;background:rgba(201,168,76,.06);margin:16px 0;}
+textarea.notes{width:100%;background:var(–ash);border:1px solid var(–ab);color:var(–cream);font-family:‘Cormorant Garamond’,serif;font-size:14px;line-height:1.6;padding:11px 13px;resize:vertical;min-height:68px;outline:none;transition:border-color .2s;}
+textarea.notes:focus{border-color:rgba(201,168,76,.32);}
+textarea.notes::placeholder{color:var(–dove);font-style:italic;}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;background:transparent;border:1px solid;font-family:‘Josefin Sans’,sans-serif;font-size:8px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-gold{border-color:rgba(201,168,76,.35);color:var(–gold);}
+.btn-gold:hover{background:rgba(201,168,76,.08);border-color:var(–gold);}
+.btn-muted{border-color:rgba(107,99,88,.28);color:var(–dove);}
+.btn-muted:hover{border-color:var(–dove);color:var(–cream);}
+.btn-danger{border-color:rgba(176,90,66,.28);color:var(–rose);}
+.btn-danger:hover{background:rgba(176,90,66,.08);border-color:var(–rose);}
+.stars{display:flex;gap:3px;}
+.star{font-size:15px;cursor:pointer;color:var(–ash);transition:color .1s;}
+.star.lit{color:var(–gold);}
+.star:hover{color:var(–gold-light);}
+.wear-entry{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.04);font-size:10px;color:var(–dove);}
+.wear-date{color:var(–cream);}
+
+/* DNA pills */
+.class-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.cpill{padding:5px 9px;border:1px solid var(–ab);background:rgba(201,168,76,.03);font-size:7.5px;letter-spacing:.13em;text-transform:uppercase;color:var(–gold-light);cursor:pointer;transition:all .2s;text-align:center;}
+.cpill.sel{background:rgba(201,168,76,.14);border-color:var(–gold);color:var(–gold);}
+.cpill:hover{border-color:rgba(201,168,76,.38);}
+
+/* Layering in modal */
+.lc-row{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(201,168,76,.04);}
+.lc-names{font-family:‘Cormorant Garamond’,serif;font-size:14px;color:var(–cream);margin-bottom:2px;}
+.lc-ratio{font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(–gold-dim);}
+.lc-desc{font-size:9.5px;color:var(–dove);line-height:1.5;margin-top:3px;}
+.lc-del{background:none;border:none;color:var(–dove);cursor:pointer;font-size:11px;padding:3px;transition:color .2s;flex-shrink:0;}
+.lc-del:hover{color:var(–rose);}
+
+/* Add layer form */
+.alf{background:var(–ash);border:1px solid var(–ab);padding:13px;margin-top:9px;}
+.alf input,.alf textarea{width:100%;background:var(–char);border:1px solid rgba(201,168,76,.1);color:var(–parchment);padding:7px 10px;font-family:‘Josefin Sans’,sans-serif;font-size:9.5px;letter-spacing:.07em;outline:none;margin-bottom:7px;}
+.alf textarea{font-family:‘Cormorant Garamond’,serif;font-size:13px;resize:vertical;min-height:50px;}
+.alf input::placeholder,.alf textarea::placeholder{color:var(–dove);}
+
+/* ADD BOTTLE MODAL */
+.add-modal{background:var(–smoke);border:1px solid var(–ab);max-width:540px;width:92vw;max-height:88vh;overflow-y:auto;position:relative;}
+.add-modal::-webkit-scrollbar{width:3px;}
+.add-modal::-webkit-scrollbar-thumb{background:var(–gold-dim);}
+.add-modal input,.add-modal select,.add-modal textarea{width:100%;background:var(–ash);border:1px solid var(–ab);color:var(–parchment);padding:9px 12px;font-family:‘Josefin Sans’,sans-serif;font-size:10px;letter-spacing:.07em;outline:none;margin-bottom:9px;transition:border-color .2s;}
+.add-modal input:focus,.add-modal select:focus{border-color:rgba(201,168,76,.38);}
+.add-modal input::placeholder{color:var(–dove);}
+.add-modal select option{background:var(–ash);}
+.flabel{font-size:7.5px;letter-spacing:.22em;text-transform:uppercase;color:var(–gold-dim);margin-bottom:4px;display:block;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+
+/* ANALYTICS */
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1px;background:rgba(201,168,76,.05);}
+.acard{background:var(–smoke);padding:24px 26px;}
+.atitle{font-size:7.5px;letter-spacing:.26em;text-transform:uppercase;color:var(–gold-dim);margin-bottom:14px;}
+.br{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.blbl{font-size:9px;letter-spacing:.05em;color:var(–dove);width:118px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.btrack{flex:1;height:2px;background:rgba(201,168,76,.08);}
+.bfill{height:2px;background:linear-gradient(90deg,var(–gold-dim),var(–gold));transition:width .6s ease;}
+.bnum{font-size:8.5px;color:var(–gold);width:20px;text-align:right;flex-shrink:0;}
+.bignum{font-family:‘Cormorant Garamond’,serif;font-size:48px;font-weight:300;color:var(–gold);line-height:1;margin-bottom:3px;}
+.biglbl{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(–dove);}
+.dw{display:flex;align-items:center;gap:18px;}
+.li{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:9px;color:var(–dove);}
+.ldot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* DNA PAGE */
+.dna-hero{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:rgba(201,168,76,.05);}
+.dnaf{background:var(–smoke);padding:20px 22px;cursor:pointer;transition:background .15s;border-left:3px solid;}
+.dnaf:hover{background:var(–ash);}
+.dnaf-name{font-family:‘Cormorant Garamond’,serif;font-size:16px;color:var(–cream);margin-bottom:3px;}
+.dnaf-ct{font-size:7.5px;letter-spacing:.18em;color:var(–dove);text-transform:uppercase;}
+.dnaf-list{font-size:8.5px;color:var(–dove);margin-top:7px;line-height:1.65;}
+.dna-panel{background:var(–char);border:1px solid var(–ab);padding:26px;margin-top:1px;display:none;}
+.dna-panel.open{display:block;}
+
+/* LAB PAGE */
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:1px;background:rgba(201,168,76,.05);}
+.lcard{background:var(–smoke);padding:20px 24px;}
+.lcomb{display:flex;align-items:center;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
+.litem{font-family:‘Cormorant Garamond’,serif;font-size:15px;color:var(–cream);}
+.lplus{color:var(–gold-dim);font-size:10px;}
+.lratio{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);color:var(–gold);font-size:7.5px;letter-spacing:.13em;padding:2px 7px;margin-left:auto;}
+.ldesc{font-size:10px;color:var(–dove);line-height:1.55;letter-spacing:.04em;}
+
+/* AI SUGGESTER */
+.suggester{background:var(–char);border:1px solid var(–ab);padding:28px 32px;margin-bottom:1px;}
+.sug-title{font-family:‘Cormorant Garamond’,serif;font-size:20px;color:var(–cream);margin-bottom:4px;}
+.sug-sub{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(–dove);margin-bottom:22px;}
+.sug-controls{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+.sug-select{flex:1;min-width:220px;background:var(–ash);border:1px solid var(–ab);color:var(–parchment);padding:10px 13px;font-family:‘Josefin Sans’,sans-serif;font-size:10px;letter-spacing:.08em;outline:none;}
+.sug-select:focus{border-color:rgba(201,168,76,.4);}
+.spray-wrap{display:flex;flex-direction:column;gap:5px;min-width:160px;}
+.spray-label{font-size:7.5px;letter-spacing:.2em;text-transform:uppercase;color:var(–gold-dim);}
+.spray-row{display:flex;align-items:center;gap:9px;}
+.spray-btn{width:26px;height:26px;background:none;border:1px solid rgba(201,168,76,.25);color:var(–gold);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.spray-btn:hover{background:rgba(201,168,76,.1);border-color:var(–gold);}
+.spray-count{font-family:‘Cormorant Garamond’,serif;font-size:22px;color:var(–gold);min-width:28px;text-align:center;}
+.spray-dots{display:flex;gap:4px;align-items:center;}
+.spray-dot{width:7px;height:7px;border-radius:50%;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.2);transition:all .15s;}
+.spray-dot.active{background:var(–gold);}
+.sug-btn{padding:10px 22px;background:transparent;border:1px solid var(–gold);color:var(–gold);font-family:‘Josefin Sans’,sans-serif;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.sug-btn:hover{background:rgba(201,168,76,.1);}
+.sug-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.sug-results{display:none;}
+.sug-results.open{display:block;animation:fu .3s ease;}
+.sug-chosen{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(201,168,76,.08);}
+.sug-chosen-name{font-family:‘Cormorant Garamond’,serif;font-size:18px;color:var(–gold);}
+.sug-chosen-spray{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(–dove);}
+.sug-arrow{color:rgba(201,168,76,.3);font-size:20px;}
+.sug-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1px;background:rgba(201,168,76,.05);}
+.sug-card{background:var(–smoke);padding:18px 22px;border-top:2px solid;}
+.sug-card-title{font-size:7px;letter-spacing:.24em;text-transform:uppercase;margin-bottom:10px;}
+.sug-combo-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.sug-frag{font-family:‘Cormorant Garamond’,serif;font-size:15px;color:var(–cream);}
+.sug-sprays{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);color:var(–gold);font-size:8px;letter-spacing:.12em;padding:2px 8px;white-space:nowrap;}
+.sug-plus{color:var(–gold-dim);font-size:11px;}
+.sug-note{font-size:10px;color:var(–dove);line-height:1.58;margin-top:6px;}
+.sug-occasion{font-size:7.5px;letter-spacing:.15em;text-transform:uppercase;color:var(–gold-dim);margin-top:8px;}
+.sug-loading{padding:32px 0;text-align:center;color:var(–dove);}
+.sug-loading em{display:block;font-family:‘Cormorant Garamond’,serif;font-style:italic;font-size:17px;color:rgba(201,168,76,.3);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
+.sug-err{padding:18px;background:rgba(176,90,66,.07);border:1px solid rgba(176,90,66,.2);color:var(–rose);font-size:10px;line-height:1.6;margin-top:12px;}
+
+/* ROTATION */
+.ritem{background:var(–smoke);padding:13px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(201,168,76,.03);}
+.ritem:hover{background:var(–ash);}
+.rrank{font-family:‘Cormorant Garamond’,serif;font-size:19px;color:var(–gold-dim);width:28px;flex-shrink:0;}
+.rname{font-family:‘Cormorant Garamond’,serif;font-size:15px;color:var(–cream);margin-bottom:2px;}
+.rmeta{font-size:8px;color:var(–dove);letter-spacing:.07em;}
+.rdays{font-family:‘Cormorant Garamond’,serif;font-size:19px;display:block;}
+.rdays.n{color:rgba(107,99,88,.4);}
+.rdays.s{color:var(–rose);}
+.rdays.w{color:var(–gold-dim);}
+.rdays.f{color:var(–forest);}
+
+.empty-st{padding:65px;text-align:center;color:var(–dove);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;}
+.empty-st em{display:block;font-family:‘Cormorant Garamond’,serif;font-style:italic;font-size:19px;color:rgba(201,168,76,.18);margin-bottom:7px;letter-spacing:0;text-transform:none;}
+
+.confirm-box{background:var(–char);border:1px solid rgba(176,90,66,.28);padding:22px 25px;max-width:370px;width:90vw;}
+.confirm-box h3{font-family:‘Cormorant Garamond’,serif;font-size:20px;color:var(–cream);margin-bottom:7px;}
+.confirm-box p{font-size:10px;color:var(–dove);line-height:1.6;margin-bottom:16px;}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(–ink);}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.17);}
+</style>
+
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="brand-name">The Vault</div>
+    <div class="brand-sub">AJ's Collection · Est. 2022</div>
+  </div>
+  <div class="stats-strip">
+    <div class="stat"><span class="stat-num" id="s-total">0</span><span class="stat-label">Bottles</span></div>
+    <div class="sdiv"></div>
+    <div class="stat"><span class="stat-num" id="s-houses">0</span><span class="stat-label">Houses</span></div>
+    <div class="sdiv"></div>
+    <div class="stat"><span class="stat-num" id="s-worn">0</span><span class="stat-label">Wears</span></div>
+    <div class="sdiv"></div>
+    <div class="stat"><span class="stat-num" id="s-starred">0</span><span class="stat-label">Starred</span></div>
+  </div>
+  <button class="add-btn" onclick="openAddModal()">+ Add Bottle</button>
+</header>
+
+<nav class="nav-bar">
+  <button class="nav-tab active" onclick="showPage('collection',this)">Collection</button>
+  <button class="nav-tab" onclick="showPage('classification',this)">DNA Classification</button>
+  <button class="nav-tab" onclick="showPage('layering',this)">Layering Lab</button>
+  <button class="nav-tab" onclick="showPage('analytics',this)">Analytics</button>
+  <button class="nav-tab" onclick="showPage('rotation',this)">Rotation</button>
+  <button class="nav-tab" onclick="showPage('starred',this)">Starred</button>
+</nav>
+
+<main class="main">
+
+<!-- COLLECTION -->
+
+<div id="page-collection" class="page active">
+  <div class="toolbar">
+    <div class="sw"><span class="si">⌕</span><input type="text" id="search" placeholder="Search name, inspiration, house…" oninput="renderGrid()"></div>
+    <select id="fh" onchange="renderGrid()"><option value="">All Houses</option></select>
+    <select id="fs" onchange="renderGrid()"><option value="">All Seasons</option><option value="ss">Spring · Summer</option><option value="fw">Fall · Winter</option><option value="yr">Year-Round</option></select>
+    <select id="fo" onchange="renderGrid()"><option value="">All Occasions</option><option value="date">Date / Romantic</option><option value="office">Office / Formal</option><option value="evening">Evening / Club</option><option value="casual">Casual</option><option value="sport">Sport / Outdoor</option><option value="special">Special Occasion</option></select>
+    <select id="fd" onchange="renderGrid()">
+      <option value="">All DNA Families</option>
+      <option>Aquatic / Marine</option><option>Fougère</option><option>Woody / Aromatic</option>
+      <option>Oriental / Amber</option><option>Oud / Resinous</option><option>Citrus / Fresh</option>
+      <option>Gourmand</option><option>Floral</option><option>Chypre</option>
+      <option>Tobacco / Smoky</option><option>Musky / Skin</option>
+    </select>
+  </div>
+  <div class="sec-hdr"><span class="sec-title">The Collection</span><span class="sec-ct" id="grid-count"></span></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- DNA CLASSIFICATION -->
+
+<div id="page-classification" class="page">
+  <div class="sec-hdr"><span class="sec-title">DNA Classification</span><span class="sec-ct">olfactory families</span></div>
+  <div class="dna-hero" id="dna-families"></div>
+  <div class="dna-panel" id="dna-panel"></div>
+</div>
+
+<!-- LAYERING LAB -->
+
+<div id="page-layering" class="page">
+  <div class="sec-hdr"><span class="sec-title">Layering Lab</span><span class="sec-ct" id="lab-ct"></span></div>
+
+  <!-- AI SUGGESTER -->
+
+  <div class="suggester">
+    <div class="sug-title">Smart Layering Suggestions</div>
+    <div class="sug-sub">Choose a fragrance &middot; set your spray count &middot; get AI pairings from your collection</div>
+    <div class="sug-controls">
+      <select class="sug-select" id="sug-frag">
+        <option value="">Select a fragrance to layer&hellip;</option>
+      </select>
+      <div class="spray-wrap">
+        <div class="spray-label">Your Spray Count</div>
+        <div class="spray-row">
+          <button class="spray-btn" onclick="changeSpray(-1)">&#8722;</button>
+          <span class="spray-count" id="spray-num">2</span>
+          <div class="spray-dots" id="spray-dots"></div>
+          <button class="spray-btn" onclick="changeSpray(1)">+</button>
+        </div>
+      </div>
+      <button class="sug-btn" id="sug-go-btn" onclick="runSuggester()">Suggest Pairings &#10022;</button>
+    </div>
+    <div id="sug-results" class="sug-results"></div>
+  </div>
+
+  <!-- SAVED COMBOS -->
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:22px 0 14px;">
+    <div class="sec-title" style="font-size:17px;">Saved Combos</div>
+    <button class="btn btn-gold" onclick="toggleGLForm()">+ Add Manually</button>
+  </div>
+  <div class="alf hidden" id="gl-form" style="margin-bottom:1px;">
+    <div class="fl" style="margin-bottom:6px;">New Layering Combo</div>
+    <input type="text" id="gl-items" placeholder="Fragrance names, comma separated">
+    <input type="text" id="gl-ratio" placeholder="Ratio / spray count (e.g. 2+2, Oil + 3 sprays)">
+    <textarea id="gl-desc" placeholder="Notes on this combo..."></textarea>
+    <div style="display:flex;gap:8px;"><button class="btn btn-gold" onclick="saveGlobalLayer()">Save</button><button class="btn btn-muted" onclick="toggleGLForm()">Cancel</button></div>
+  </div>
+  <div class="lab-grid" id="lab-grid"></div>
+</div>
+
+<!-- ANALYTICS -->
+
+<div id="page-analytics" class="page">
+  <div class="sec-hdr"><span class="sec-title">Analytics</span></div>
+  <div class="agrid">
+    <div class="acard"><div class="atitle">Bottles by House</div><div id="ch-houses"></div></div>
+    <div class="acard"><div class="atitle">Season Split</div><div class="dw"><svg style="width:88px;height:88px;flex-shrink:0;" viewBox="0 0 36 36" id="donut-s"></svg><div id="legend-s"></div></div></div>
+    <div class="acard"><div class="atitle">Occasion Breakdown</div><div id="ch-occ"></div></div>
+    <div class="acard"><div class="atitle">DNA Family Distribution</div><div id="ch-dna"></div></div>
+    <div class="acard"><div class="atitle">Overview</div><div class="bignum" id="a-total">0</div><div class="biglbl">Total Bottles</div><div style="margin-top:12px;font-size:9.5px;color:var(--dove);line-height:1.85;letter-spacing:.04em;" id="a-overview"></div></div>
+    <div class="acard"><div class="atitle">Top Inspirations</div><div id="ch-insp"></div></div>
+  </div>
+</div>
+
+<!-- ROTATION -->
+
+<div id="page-rotation" class="page">
+  <div class="sec-hdr"><span class="sec-title">Rotation Tracker</span><span class="sec-ct">sorted by days since last wear</span></div>
+  <div id="rot-list"></div>
+</div>
+
+<!-- STARRED -->
+
+<div id="page-starred" class="page">
+  <div class="sec-hdr"><span class="sec-title">Starred</span><span class="sec-ct" id="starred-ct"></span></div>
+  <div class="grid" id="starred-grid"></div>
+</div>
+
+</main>
+
+<!-- DETAIL MODAL -->
+
+<div class="overlay hidden" id="det-overlay" onclick="closeDetModal(event)">
+<div class="modal">
+  <div class="mh">
+    <div class="m-house" id="m-house"></div>
+    <div class="m-name" id="m-name"></div>
+    <div class="m-insp" id="m-insp"></div>
+    <button class="mcl" onclick="closeDetDirect()">✕</button>
+  </div>
+  <div class="mb">
+    <div class="row">
+      <div class="field"><div class="fl">Occasion</div><div class="fv" id="m-occ"></div></div>
+      <div class="field"><div class="fl">Season</div><div class="fv" id="m-sea"></div></div>
+      <div class="field"><div class="fl">Wears</div><div class="fv" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);" id="m-wears"></div></div>
+    </div>
+
+```
+<div class="fl" style="margin-bottom:8px;">DNA Classification — Select Family</div>
+<div class="class-grid" id="m-dna-grid"></div>
+
+<div class="mdiv"></div>
+<div class="fl" style="margin-bottom:7px;">Your Rating</div>
+<div class="stars" id="m-stars"></div>
+
+<div class="mdiv"></div>
+<div class="fl" style="margin-bottom:7px;">Personal Notes</div>
+<textarea class="notes" id="m-notes" placeholder="Observations, longevity, sillage notes, pairings…" onchange="saveNotes()"></textarea>
+
+<div class="mdiv"></div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+  <div class="fl" style="margin-bottom:0;">Layering Combos</div>
+  <button class="btn btn-muted" style="font-size:7.5px;padding:4px 11px;" onclick="toggleLayerForm()">+ Add Combo</button>
+</div>
+<div id="m-layer-list"></div>
+<div class="alf hidden" id="m-layer-form">
+  <input type="text" id="lf-items" placeholder="Other fragrances to combine with (comma separated)">
+  <input type="text" id="lf-ratio" placeholder="Ratio or type (e.g. 2+2, Oil base + spray)">
+  <textarea id="lf-desc" placeholder="Notes on this combo — development, when to wear, tips…"></textarea>
+  <div style="display:flex;gap:8px;"><button class="btn btn-gold" onclick="saveBottleLayer()">Save</button><button class="btn btn-muted" onclick="document.getElementById('m-layer-form').classList.add('hidden')">Cancel</button></div>
+</div>
+
+<div class="mdiv"></div>
+<div class="fl" style="margin-bottom:7px;">Wear Log</div>
+<div id="m-wear-log"></div>
+
+<div class="btn-row">
+  <button class="btn btn-gold" onclick="logWear()">✦ Log Wear</button>
+  <button class="btn btn-muted" id="m-star-btn" onclick="toggleStar()">☆ Star</button>
+  <button class="btn btn-danger" onclick="deleteCurrentBottle()">✕ Remove</button>
+</div>
+```
+
+  </div>
+</div>
+</div>
+
+<!-- ADD BOTTLE MODAL -->
+
+<div class="overlay hidden" id="add-overlay" onclick="closeAddOverlay(event)">
+<div class="add-modal">
+  <div class="mh">
+    <div class="m-house" style="margin-bottom:4px;">New Bottle</div>
+    <div class="m-name">Add to Collection</div>
+    <button class="mcl" onclick="document.getElementById('add-overlay').classList.add('hidden')">✕</button>
+  </div>
+  <div class="mb">
+    <div class="form-row">
+      <div><label class="flabel">House / Brand *</label><input type="text" id="af-house" placeholder="e.g. The Dua Brand" list="house-dl"><datalist id="house-dl"></datalist></div>
+      <div><label class="flabel">Fragrance Name *</label><input type="text" id="af-name" placeholder="Full name"></div>
+    </div>
+    <label class="flabel">Inspiration / DNA Reference</label>
+    <input type="text" id="af-insp" placeholder="e.g. Creed Aventus, Bleu de Chanel, Original">
+    <div class="form-row">
+      <div><label class="flabel">Occasion</label>
+        <select id="af-occ"><option value="date">♥ Date / Romantic</option><option value="office">◆ Office / Formal</option><option value="evening">✦ Evening / Club</option><option value="casual" selected>■ Casual</option><option value="sport">▲ Sport</option><option value="special">★ Special</option></select>
+      </div>
+      <div><label class="flabel">Season</label>
+        <select id="af-sea"><option value="ss">Spring · Summer</option><option value="fw">Fall · Winter</option><option value="yr">Year-Round</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label class="flabel">DNA Family</label>
+        <select id="af-dna"><option value="">Unclassified</option><option>Aquatic / Marine</option><option>Fougère</option><option>Woody / Aromatic</option><option>Oriental / Amber</option><option>Oud / Resinous</option><option>Citrus / Fresh</option><option>Gourmand</option><option>Floral</option><option>Chypre</option><option>Tobacco / Smoky</option><option>Musky / Skin</option></select>
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:9px;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--dove);">
+          <input type="checkbox" id="af-base" style="width:auto;margin-bottom:0;"> Layering Base
+        </label>
+      </div>
+    </div>
+    <label class="flabel">Occasion Detail (optional)</label>
+    <input type="text" id="af-occ-detail" placeholder="e.g. Office / smart casual / date night">
+    <div class="btn-row" style="margin-top:5px;"><button class="btn btn-gold" onclick="addBottle()">Add to Vault</button><button class="btn btn-muted" onclick="document.getElementById('add-overlay').classList.add('hidden')">Cancel</button></div>
+  </div>
+</div>
+</div>
+
+<!-- CONFIRM DELETE -->
+
+<div class="overlay hidden" id="conf-overlay">
+<div class="confirm-box">
+  <h3>Remove Bottle?</h3>
+  <p id="conf-msg"></p>
+  <div class="btn-row"><button class="btn btn-danger" id="conf-yes">Remove</button><button class="btn btn-muted" onclick="document.getElementById('conf-overlay').classList.add('hidden')">Cancel</button></div>
+</div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const DNA_FAMILIES = {
+  "Aquatic / Marine":{color:"#3a7585",desc:"Fresh marine, ozonic, sea-spray accords"},
+  "Fougère":{color:"#3d6038",desc:"Lavender, oakmoss, coumarin — the classic masculine pillar"},
+  "Woody / Aromatic":{color:"#8a6e2e",desc:"Sandalwood, cedarwood, vetiver, warm woods"},
+  "Oriental / Amber":{color:"#c9a84c",desc:"Amber, benzoin, vanilla, spice, balsam"},
+  "Oud / Resinous":{color:"#7a4a28",desc:"Oud, incense, frankincense, resinous bases"},
+  "Citrus / Fresh":{color:"#909830",desc:"Bergamot, lemon, neroli, grapefruit"},
+  "Gourmand":{color:"#b06840",desc:"Coffee, vanilla, caramel, tonka, sweet dessert accords"},
+  "Floral":{color:"#b05a80",desc:"Rose, jasmine, iris, white flowers"},
+  "Chypre":{color:"#507050",desc:"Oakmoss, labdanum, bergamot — earthy elegance"},
+  "Tobacco / Smoky":{color:"#6a4a3a",desc:"Tobacco leaf, smoke, leather, tar"},
+  "Musky / Skin":{color:"#6b6358",desc:"White musk, skin-close, animalic warmth"},
+};
+
+const DEFAULT_DNA = {
+  "#Imagine":"Aquatic / Marine","Acqua Di DUA":"Aquatic / Marine","Bet On 67":"Fougère",
+  "Bleu de Casino Elixir Extrait":"Woody / Aromatic","Bleu de Dua Attar":"Woody / Aromatic",
+  "Bleu de Dua Exclusive Extrait":"Woody / Aromatic","Casino Royale Nights Extrait":"Oriental / Amber",
+  "D Le Attar":"Woody / Aromatic","D Le Parfum Intense":"Woody / Aromatic",
+  "Desert Reflection Extrait":"Floral","Drowning in Bleu de Dua Attar":"Woody / Aromatic",
+  "Drowning Bleu de Savage Fierce Extrait":"Woody / Aromatic","His Intense Aspiration":"Fougère",
+  "His Loyalty":"Floral","Fierce Savage":"Woody / Aromatic","His Royalty":"Floral",
+  "Error 413":"Oriental / Amber","His Aspiration Extreme Sport":"Aquatic / Marine",
+  "His OG Aspiration":"Fougère","His Perspective Extrait":"Woody / Aromatic",
+  "Iconic Greenwich Village":"Fougère","Imperial Blue":"Aquatic / Marine",
+  "Imperiale Casino Elixir":"Aquatic / Marine","Intuition Vision":"Aquatic / Marine",
+  "Jazz Maison":"Tobacco / Smoky","Mystical Amulet of Blue":"Aquatic / Marine",
+  "Peace with Poseidon":"Aquatic / Marine","Poseidon's Swimming Cologne":"Aquatic / Marine",
+  "River Fougere":"Fougère","Rome in Yellow Dream":"Floral","Spice It Up Metallic Musk":"Oriental / Amber",
+  "Stronger With Azure Supernova 2.0":"Aquatic / Marine","The Savage Attar":"Woody / Aromatic",
+  "Iconic Plums By The Fire":"Gourmand","Poseidon's Fireplace":"Woody / Aromatic",
+  "Dua's SoHo":"Fougère","Gentleman's Club":"Fougère","True Self Absolute":"Woody / Aromatic",
+  "Poseidon's Cotton Candy":"Gourmand","Dua's Water Primal Essence":"Aquatic / Marine",
+  "Rome In Coral Fantasy":"Floral","Midnight Candy For 1 & Only":"Oriental / Amber",
+  "1 & Only Jazz Club":"Tobacco / Smoky","Victorian Poseidon":"Aquatic / Marine",
+  "Ottoman Breeze":"Fougère","Aphrodisiac":"Oriental / Amber","Black Widow":"Gourmand",
+  "City of Dua":"Woody / Aromatic","Midnight Rendezvous":"Woody / Aromatic",
+  "Gone Swimming":"Aquatic / Marine","Cola Fizz Of Tonka Beans":"Gourmand",
+  "Smoky Cuba Tabac":"Tobacco / Smoky","Fortune":"Oriental / Amber",
+  "Supernova Cologne Intense":"Aquatic / Marine","Wooden Lucky Charm":"Woody / Aromatic",
+  "Rome In Green":"Fougère","Queen Of The Chess":"Oriental / Amber","Midnight Fig Nest":"Oriental / Amber",
+  "Black Origami":"Oriental / Amber","Daring Blue For Life":"Aquatic / Marine",
+  "Glacier Bold":"Aquatic / Marine","Glacier Le Noir":"Fougère","Hercules":"Tobacco / Smoky",
+  "Jean Lowe Immortal":"Aquatic / Marine","Jean Lowe Vibe":"Aquatic / Marine",
+  "Kismet":"Gourmand","Perseus":"Fougère","Salvo Elixir":"Woody / Aromatic",
+  "Salvo Intense":"Woody / Aromatic","Tobacco Touch":"Gourmand","Victorioso":"Aquatic / Marine",
+  "Victorioso Myth":"Aquatic / Marine","Victorioso Nero":"Aquatic / Marine",
+  "Yeah Man":"Woody / Aromatic","Your Touch Amber":"Oriental / Amber",
+  "Your Touch Oud":"Oud / Resinous","Your Touch Sandal":"Woody / Aromatic",
+  "Opulent Dubai":"Oud / Resinous","Mashrabya":"Tobacco / Smoky",
+  "Ameer Al Oudh Intense":"Woody / Aromatic","Vintage Radio":"Oriental / Amber",
+  "Najdia Intense":"Aquatic / Marine","Qaed Al Fursan":"Aquatic / Marine",
+  "Hayatti Gold Elixir":"Oriental / Amber","Ana Abiyedh":"Musky / Skin",
+  "Teriaq Intense":"Oriental / Amber","Liam Grey":"Musky / Skin",
+  "Opulent Musk":"Oriental / Amber","Bade'e Al Oud For Glory":"Oud / Resinous",
+  "Bade'e Al Oud Sublime":"Floral","Bade'e Al Oud Honor & Glory":"Oud / Resinous",
+  "Bade'e Al Oud Amethyst":"Floral","Khamrah Qahwa":"Gourmand",
+  "Suits":"Floral","Lust Cherry":"Gourmand","Intense Peach":"Gourmand",
+  "Oud Wonder":"Oud / Resinous","Ebony Fume":"Woody / Aromatic",
+  "Proud of You":"Oriental / Amber","Proud of You Absolute":"Oriental / Amber",
+  "La Uno Million Elixir":"Oriental / Amber","Neroli Riviera":"Citrus / Fresh",
+  "Grassland":"Fougère","Linen Vetiver":"Woody / Aromatic","Vintage Green 78":"Citrus / Fresh",
+  "Tobacco & Tonka Bean":"Tobacco / Smoky","Midnight Hour":"Oriental / Amber",
+  "Dark Cherry & Amber":"Oriental / Amber","Metal Rain":"Aquatic / Marine",
+  "Bleu de Chanel EDT":"Woody / Aromatic","Montblanc Legend Spirit":"Aquatic / Marine",
+  "Nautica Voyage":"Aquatic / Marine","Dior Sauvage EDP":"Woody / Aromatic",
+  "Davidoff Cool Water":"Aquatic / Marine","Valencia Uomo Intense":"Floral",
+  "Valencia Uomo Fantasy":"Floral","Valencia Uomo":"Floral","Millionaire Royal":"Oriental / Amber",
+  "Island Dreams":"Floral","Shiyaaka Snow":"Aquatic / Marine","Shiyaaka Blue":"Woody / Aromatic",
+  "Epoque Artistique":"Aquatic / Marine","Haven Eclipse":"Woody / Aromatic",
+  "Secret Embers":"Oriental / Amber","Musk Melody":"Musky / Skin",
+  "Reverence Extrait":"Fougère","The Exposed Extrait":"Fougère",
+  "Fattan":"Woody / Aromatic","Hawas Ice":"Aquatic / Marine","Hawas Kobra":"Aquatic / Marine",
+  "Itqan Noir":"Woody / Aromatic","Reverie Aqua Pour Homme":"Aquatic / Marine",
+  "Abadi Opulent":"Woody / Aromatic","Wazir":"Oriental / Amber","Raazi":"Fougère",
+  "Rayees":"Fougère","Nor":"Aquatic / Marine","Limitless":"Fougère","Gladiator":"Oriental / Amber",
+  "Le Parfait":"Fougère","Club de Nuit Milestone":"Aquatic / Marine",
+  "Anti Social Parfum Club - Most Wanted":"Oriental / Amber",
+  "Afnan Supremacy Collector's Edition":"Aquatic / Marine","Ajmal Evoke Gold":"Woody / Aromatic",
+  "Al Haramain Detour Noir":"Woody / Aromatic","Crown / Al-Rehab Silver (oil)":"Aquatic / Marine",
+  "Atralia Amazonas Avalanche":"Floral","French Avenue Liquid Brun":"Woody / Aromatic",
+  "Game of Spades Wildcard":"Woody / Aromatic","Grandeur Iconic Built":"Woody / Aromatic",
+  "Paris Corner Rifaqat":"Musky / Skin","Rayhaan Aquatica":"Aquatic / Marine",
+  "Royalty by Maluma Onyx":"Oriental / Amber","Vurv Royce Black":"Oriental / Amber",
+  "MIRIS No54602":"Fougère","MIRIS No56902":"Gourmand",
+  "MIRIS No47319":"Oriental / Amber","MIRIS No59797":"Woody / Aromatic",
+};
+
+const SEAS = {ss:"Spring · Summer",fw:"Fall · Winter",yr:"Year-round"};
+const OCC_LBL = {date:"♥ Date",office:"◆ Office",evening:"✦ Evening",casual:"■ Casual",sport:"▲ Sport",special:"★ Special"};
+const OCC_CLS = {date:"td",office:"to",evening:"te",casual:"tc",sport:"ts",special:"tsp"};
+
+// ============================================================
+// DEFAULT DATA
+// ============================================================
+const DEFAULT_COL=[
+  {house:"The Dua Brand",name:"#Imagine",inspiration:"Louis Vuitton Imagination",occ_key:"casual",occ_detail:"Casual / daytime errands",s_key:"ss"},
+  {house:"The Dua Brand",name:"Acqua Di DUA",inspiration:"Acqua di Giò (OG/vintage style)",occ_key:"casual",occ_detail:"Casual / beach / gym",s_key:"ss"},
+  {house:"The Dua Brand",name:"Bet On 67",inspiration:"Ralph Lauren Polo 67",occ_key:"sport",occ_detail:"Casual outdoors / sport",s_key:"ss"},
+  {house:"The Dua Brand",name:"Bleu de Casino Elixir Extrait",inspiration:"Bleu de Chanel + Aventus + BR540 Extrait",occ_key:"date",occ_detail:"Date night / upscale casual",s_key:"fw"},
+  {house:"The Dua Brand",name:"Bleu de Dua Attar",inspiration:"Bleu de Chanel (attar style)",occ_key:"office",occ_detail:"Office / smart casual",s_key:"yr",starred:true,isBase:true},
+  {house:"The Dua Brand",name:"Bleu de Dua Exclusive Extrait",inspiration:"Bleu de Chanel L'Exclusif",occ_key:"office",occ_detail:"Business formal / special occasion",s_key:"fw"},
+  {house:"The Dua Brand",name:"Casino Royale Nights Extrait",inspiration:"Baccarat Rouge 540 Extrait",occ_key:"date",occ_detail:"Date night / cocktail event",s_key:"fw"},
+  {house:"The Dua Brand",name:"D Le Attar",inspiration:"YSL Y Le Parfum",occ_key:"office",occ_detail:"Office / date night",s_key:"fw"},
+  {house:"The Dua Brand",name:"D Le Parfum Intense",inspiration:"YSL Y EDP Intense",occ_key:"evening",occ_detail:"Evening / formal",s_key:"fw"},
+  {house:"The Dua Brand",name:"Desert Reflection Extrait",inspiration:"Amouage Reflection Man",occ_key:"special",occ_detail:"Special occasion / formal",s_key:"fw"},
+  {house:"The Dua Brand",name:"Drowning in Bleu de Dua Attar",inspiration:"Bleu de Chanel + Nishane Ani",occ_key:"date",occ_detail:"Date night / upscale",s_key:"fw"},
+  {house:"The Dua Brand",name:"Drowning Bleu de Savage Fierce Extrait",inspiration:"Ani + Sauvage EDT + Fierce + BdC",occ_key:"evening",occ_detail:"Night out / clubbing",s_key:"fw"},
+  {house:"The Dua Brand",name:"His Intense Aspiration",inspiration:"Allure Homme Blanche + AHS Eau Extreme",occ_key:"office",occ_detail:"Office / smart casual",s_key:"ss"},
+  {house:"The Dua Brand",name:"His Loyalty",inspiration:"D&G Devotion Pour Homme",occ_key:"casual",occ_detail:"Casual / social",s_key:"ss"},
+  {house:"The Dua Brand",name:"Fierce Savage",inspiration:"Abercrombie Fierce + Dior Sauvage EDT",occ_key:"sport",occ_detail:"Casual / gym / outdoors",s_key:"ss"},
+  {house:"The Dua Brand",name:"His Royalty",inspiration:"Prada L'Homme L'Eau",occ_key:"office",occ_detail:"Office / light date",s_key:"ss"},
+  {house:"The Dua Brand",name:"Error 413",inspiration:"1 Million Lucky",occ_key:"evening",occ_detail:"Night out / social",s_key:"fw"},
+  {house:"The Dua Brand",name:"His Aspiration Extreme Sport",inspiration:"Chanel Allure Homme Sport Eau Extrême",occ_key:"sport",occ_detail:"Sport / casual / gym",s_key:"ss"},
+  {house:"The Dua Brand",name:"His OG Aspiration",inspiration:"Chanel Allure Homme (1999 vintage)",occ_key:"office",occ_detail:"Office / smart casual",s_key:"fw"},
+  {house:"The Dua Brand",name:"His Perspective Extrait",inspiration:"Prada Paradigme",occ_key:"office",occ_detail:"Office / date night / layering base",s_key:"yr",isBase:true},
+  {house:"The Dua Brand",name:"Iconic Greenwich Village",inspiration:"Bond No. 9 Greenwich Village",occ_key:"casual",occ_detail:"Urban casual / creative social",s_key:"ss"},
+  {house:"The Dua Brand",name:"Imperial Blue",inspiration:"Bleu de Chanel + Creed Millésime Impérial",occ_key:"date",occ_detail:"Upscale casual / date",s_key:"ss"},
+  {house:"The Dua Brand",name:"Imperiale Casino Elixir",inspiration:"Millésime Impérial + Aventus + BR540 Extrait",occ_key:"special",occ_detail:"Special occasion / formal",s_key:"ss"},
+  {house:"The Dua Brand",name:"Intuition Vision",inspiration:"Acqua di Giò Profumo",occ_key:"office",occ_detail:"Smart casual / office",s_key:"ss"},
+  {house:"The Dua Brand",name:"Jazz Maison",inspiration:"Maison Margiela Jazz Club",occ_key:"evening",occ_detail:"Evening social / bar / lounge",s_key:"fw"},
+  {house:"The Dua Brand",name:"Mystical Amulet of Blue",inspiration:"Ex Nihilo Blue Talisman",occ_key:"casual",occ_detail:"Casual / everyday",s_key:"ss"},
+  {house:"The Dua Brand",name:"Peace with Poseidon",inspiration:"Scent of Peace + Aventus",occ_key:"casual",occ_detail:"Casual / outdoors / weekend",s_key:"ss"},
+  {house:"The Dua Brand",name:"Poseidon's Swimming Cologne",inspiration:"Aventus Cologne + LV Afternoon Swim",occ_key:"casual",occ_detail:"Casual / beach / sport",s_key:"ss",isBase:true},
+  {house:"The Dua Brand",name:"River Fougere",inspiration:"YSL Rive Gauche Pour Homme",occ_key:"office",occ_detail:"Office / smart casual / retro",s_key:"ss"},
+  {house:"The Dua Brand",name:"Rome in Yellow Dream",inspiration:"Valentino Born in Roma Yellow Dream",occ_key:"date",occ_detail:"Date / upscale casual",s_key:"ss"},
+  {house:"The Dua Brand",name:"Spice It Up Metallic Musk",inspiration:"Viktor & Rolf Spicebomb Metallic Musk",occ_key:"office",occ_detail:"Smart casual / office",s_key:"fw"},
+  {house:"The Dua Brand",name:"Stronger With Azure Supernova 2.0",inspiration:"Stronger With You + ADG Profondo + Roja Elysium + Aventus",occ_key:"date",occ_detail:"Date night / evening",s_key:"fw"},
+  {house:"The Dua Brand",name:"The Savage Attar",inspiration:"Dior Sauvage Parfum",occ_key:"date",occ_detail:"Date night / upscale casual",s_key:"yr"},
+  {house:"The Dua Brand",name:"Iconic Plums By The Fire",inspiration:"Andy Warhol + By the Fireplace",occ_key:"evening",occ_detail:"Evening / cozy / lounge",s_key:"fw"},
+  {house:"The Dua Brand",name:"Poseidon's Fireplace",inspiration:"Aventus + By the Fireplace",occ_key:"date",occ_detail:"Evening / lounge / date",s_key:"fw"},
+  {house:"The Dua Brand",name:"Dua's SoHo",inspiration:"Bond No. 9 Soho",occ_key:"casual",occ_detail:"Urban casual / creative social",s_key:"ss"},
+  {house:"The Dua Brand",name:"Gentleman's Club",inspiration:"Givenchy Gentleman Society",occ_key:"date",occ_detail:"Business casual / date",s_key:"fw"},
+  {house:"The Dua Brand",name:"True Self Absolute",inspiration:"YSL MYSLF L'Absolu",occ_key:"date",occ_detail:"Date night / evening",s_key:"fw"},
+  {house:"The Dua Brand",name:"Poseidon's Cotton Candy",inspiration:"Aventus + Cotton Candy De Dua",occ_key:"casual",occ_detail:"Casual / fun social / playful",s_key:"ss"},
+  {house:"The Dua Brand",name:"Dua's Water Primal Essence",inspiration:"Acqua di Giò Absolu",occ_key:"office",occ_detail:"Office / casual / gym",s_key:"ss"},
+  {house:"The Dua Brand",name:"Rome In Coral Fantasy",inspiration:"Valentino Born in Roma Coral Fantasy",occ_key:"date",occ_detail:"Date / warm-weather casual",s_key:"ss"},
+  {house:"The Dua Brand",name:"Midnight Candy For 1 & Only",inspiration:"La Nuit de L'Homme + Candies for Men + The One",occ_key:"evening",occ_detail:"Evening / date night / club",s_key:"fw"},
+  {house:"The Dua Brand",name:"1 & Only Jazz Club",inspiration:"The One + Jazz Club",occ_key:"evening",occ_detail:"Evening / lounge / date",s_key:"fw"},
+  {house:"The Dua Brand",name:"Victorian Poseidon",inspiration:"Aventus + Xerjoff 1861 Renaissance",occ_key:"special",occ_detail:"Formal / special occasion",s_key:"fw"},
+  {house:"The Dua Brand",name:"Ottoman Breeze",inspiration:"Nishane Hacivat",occ_key:"casual",occ_detail:"Casual / office / everyday (layering base)",s_key:"ss",isBase:true},
+  {house:"The Dua Brand",name:"Aphrodisiac",inspiration:"Initio Psychedelic Love",occ_key:"date",occ_detail:"Date night / intimate / evening",s_key:"fw"},
+  {house:"The Dua Brand",name:"Black Widow",inspiration:"Kilian Black Phantom",occ_key:"evening",occ_detail:"Evening / date night / club",s_key:"fw"},
+  {house:"The Dua Brand",name:"City of Dua",inspiration:"Louis Vuitton City of Stars",occ_key:"evening",occ_detail:"Smart casual / evening",s_key:"fw"},
+  {house:"The Dua Brand",name:"Midnight Rendezvous",inspiration:"YSL La Nuit de L'Homme",occ_key:"date",occ_detail:"Date night / evening / club",s_key:"fw"},
+  {house:"The Dua Brand",name:"Gone Swimming",inspiration:"Louis Vuitton Afternoon Swim",occ_key:"casual",occ_detail:"Casual / beach / poolside",s_key:"ss"},
+  {house:"The Dua Brand",name:"Cola Fizz Of Tonka Beans",inspiration:"Mancera Tonka Cola",occ_key:"casual",occ_detail:"Casual / fun / social",s_key:"yr"},
+  {house:"The Dua Brand",name:"Smoky Cuba Tabac",inspiration:"Alghabra Parfums Cuban Tobacco",occ_key:"evening",occ_detail:"Evening / lounge / special occasion",s_key:"fw"},
+  {house:"The Dua Brand",name:"Fortune",inspiration:"Xerjoff Naxos",occ_key:"date",occ_detail:"Date night / evening / romantic",s_key:"fw"},
+  {house:"The Dua Brand",name:"Supernova Cologne Intense",inspiration:"Roja Parfums Elysium Eau Intense",occ_key:"office",occ_detail:"Smart casual / office / gym",s_key:"ss"},
+  {house:"The Dua Brand",name:"Wooden Lucky Charm",inspiration:"Dior Bois Talisman",occ_key:"evening",occ_detail:"Smart casual / evening",s_key:"fw"},
+  {house:"The Dua Brand",name:"Rome In Green",inspiration:"Valentino Uomo Born in Roma Green Stravaganza",occ_key:"casual",occ_detail:"Casual / outdoors / weekend",s_key:"ss"},
+  {house:"The Dua Brand",name:"Queen Of The Chess",inspiration:"Mind Games Queening",occ_key:"date",occ_detail:"Date / upscale casual / evening",s_key:"fw"},
+  {house:"The Dua Brand",name:"Midnight Fig Nest",inspiration:"Nest Indigo",occ_key:"evening",occ_detail:"Evening / special occasion / mysterious",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Black Origami",inspiration:"Tom Ford Black Orchid",occ_key:"date",occ_detail:"Evening / date night / special occasion",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Daring Blue For Life",inspiration:"D&G Light Blue Forever",occ_key:"casual",occ_detail:"Casual / beach / everyday",s_key:"ss"},
+  {house:"Maison Alhambra",name:"Glacier Bold",inspiration:"JPG Le Beau Le Parfum",occ_key:"casual",occ_detail:"Casual / social / gym",s_key:"ss"},
+  {house:"Maison Alhambra",name:"Glacier Le Noir",inspiration:"JPG Le Male Le Parfum",occ_key:"evening",occ_detail:"Date night / club / evening",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Hercules",inspiration:"Parfums de Marly Herod",occ_key:"evening",occ_detail:"Evening / formal / date",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Jean Lowe Immortal",inspiration:"Louis Vuitton L'Immensité",occ_key:"office",occ_detail:"Smart casual / office / layering base",s_key:"ss",isBase:true},
+  {house:"Maison Alhambra",name:"Jean Lowe Vibe",inspiration:"Louis Vuitton Pacific Chill",occ_key:"casual",occ_detail:"Casual / beach / weekend",s_key:"ss"},
+  {house:"Maison Alhambra",name:"Kismet",inspiration:"Kilian Angel's Share",occ_key:"date",occ_detail:"Evening / date night / cozy lounge",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Perseus",inspiration:"Parfums de Marly Pegasus",occ_key:"office",occ_detail:"Office / smart casual / date",s_key:"yr"},
+  {house:"Maison Alhambra",name:"Salvo Elixir",inspiration:"Dior Sauvage Elixir",occ_key:"date",occ_detail:"Date night / evening / special occasion",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Salvo Intense",inspiration:"Dior Sauvage EDP",occ_key:"office",occ_detail:"Casual / office / everyday",s_key:"yr"},
+  {house:"Maison Alhambra",name:"Tobacco Touch",inspiration:"Tom Ford Tobacco Vanille",occ_key:"date",occ_detail:"Evening / cozy / romantic / winter date",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Victorioso",inspiration:"Paco Rabanne Invictus",occ_key:"sport",occ_detail:"Sport / casual / gym / daytime",s_key:"ss"},
+  {house:"Maison Alhambra",name:"Victorioso Myth",inspiration:"Invictus Legend",occ_key:"date",occ_detail:"Date night / upscale casual",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Victorioso Nero",inspiration:"Invictus Victory / Victory Elixir",occ_key:"date",occ_detail:"Date night / evening / formal",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Yeah Man",inspiration:"YSL Y EDP",occ_key:"office",occ_detail:"Office / casual / everyday",s_key:"yr"},
+  {house:"Maison Alhambra",name:"Your Touch Amber",inspiration:"Armani Stronger With You Amber",occ_key:"date",occ_detail:"Date night / cozy evening",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Your Touch Oud",inspiration:"Armani Stronger With You Oud",occ_key:"special",occ_detail:"Evening / special occasion / date",s_key:"fw"},
+  {house:"Maison Alhambra",name:"Your Touch Sandal",inspiration:"Armani Stronger With You Sandalwood",occ_key:"date",occ_detail:"Smart casual / date / evening",s_key:"fw"},
+  {house:"Lattafa",name:"Opulent Dubai",inspiration:"God of Fire Original DNA",occ_key:"special",occ_detail:"Special occasion / evening / statement",s_key:"fw"},
+  {house:"Lattafa",name:"Mashrabya",inspiration:"Initio Smoking Hot",occ_key:"evening",occ_detail:"Evening / club / date night",s_key:"fw"},
+  {house:"Lattafa",name:"Ameer Al Oudh Intense",inspiration:"Maison Margiela By the Fireplace",occ_key:"evening",occ_detail:"Cozy evening / lounge / layering",s_key:"fw",isBase:true},
+  {house:"Lattafa",name:"Vintage Radio",inspiration:"Initio Paragon",occ_key:"date",occ_detail:"Date night / evening / special occasion",s_key:"fw"},
+  {house:"Lattafa",name:"Najdia Intense",inspiration:"JPG Le Beau Paradise Garden",occ_key:"casual",occ_detail:"Casual / daytime / social",s_key:"ss"},
+  {house:"Lattafa",name:"Qaed Al Fursan",inspiration:"Creed Aventus",occ_key:"office",occ_detail:"Office / smart casual / daytime",s_key:"ss"},
+  {house:"Lattafa",name:"Hayatti Gold Elixir",inspiration:"Armani Code Profumo",occ_key:"date",occ_detail:"Date night / evening / club",s_key:"fw"},
+  {house:"Lattafa",name:"Ana Abiyedh",inspiration:"White Musk Original",occ_key:"casual",occ_detail:"Casual / office / everyday / skin scent",s_key:"yr"},
+  {house:"Lattafa",name:"Teriaq Intense",inspiration:"Original",occ_key:"evening",occ_detail:"Evening / statement / bold",s_key:"fw"},
+  {house:"Lattafa",name:"Liam Grey",inspiration:"BDK Gris Charnel",occ_key:"date",occ_detail:"Smart casual / date / minimalist chic",s_key:"fw"},
+  {house:"Lattafa",name:"Opulent Musk",inspiration:"BR540 x Initio Instant Crush",occ_key:"date",occ_detail:"Date night / social / evening",s_key:"yr"},
+  {house:"Lattafa",name:"Bade'e Al Oud For Glory",inspiration:"Initio Oud for Greatness",occ_key:"special",occ_detail:"Special occasion / evening / statement",s_key:"fw"},
+  {house:"Lattafa",name:"Bade'e Al Oud Sublime",inspiration:"Kayali Eden Juicy Apple",occ_key:"casual",occ_detail:"Casual / fun / social / daytime",s_key:"ss"},
+  {house:"Lattafa",name:"Bade'e Al Oud Honor & Glory",inspiration:"Original / house blend",occ_key:"evening",occ_detail:"Evening / statement / bold",s_key:"fw"},
+  {house:"Lattafa",name:"Bade'e Al Oud Amethyst",inspiration:"Initio Atomic Rose",occ_key:"date",occ_detail:"Date night / floral evening / romantic",s_key:"fw"},
+  {house:"Lattafa",name:"Khamrah Qahwa",inspiration:"Original",occ_key:"evening",occ_detail:"Cozy / evening / lounge / cold weather treat",s_key:"fw",starred:true},
+  {house:"Fragrance World",name:"Suits",inspiration:"YSL Tuxedo",occ_key:"special",occ_detail:"Formal / evening / special occasion",s_key:"fw"},
+  {house:"Fragrance World",name:"Lust Cherry",inspiration:"Tom Ford Lost Cherry",occ_key:"date",occ_detail:"Date night / evening / romantic",s_key:"fw"},
+  {house:"Fragrance World",name:"Intense Peach",inspiration:"Tom Ford Bitter Peach",occ_key:"evening",occ_detail:"Evening / bold social / date",s_key:"fw"},
+  {house:"Fragrance World",name:"Oud Wonder",inspiration:"Tom Ford Oud Wood",occ_key:"office",occ_detail:"Smart casual / office / date",s_key:"fw"},
+  {house:"Fragrance World",name:"Ebony Fume",inspiration:"Tom Ford Ebene Fume",occ_key:"special",occ_detail:"Evening / formal / special occasion",s_key:"fw"},
+  {house:"Fragrance World",name:"Proud of You",inspiration:"Armani Stronger With You",occ_key:"office",occ_detail:"Office / casual / everyday",s_key:"fw"},
+  {house:"Fragrance World",name:"Proud of You Absolute",inspiration:"Armani Stronger With You Absolutely",occ_key:"date",occ_detail:"Date night / evening / upscale",s_key:"fw"},
+  {house:"Fragrance World",name:"La Uno Million Elixir",inspiration:"Paco Rabanne 1 Million Elixir",occ_key:"evening",occ_detail:"Date night / club / evening",s_key:"fw"},
+  {house:"Fragrance World",name:"Neroli Riviera",inspiration:"Tom Ford Neroli Portofino",occ_key:"casual",occ_detail:"Casual / beach / vacation / daytime",s_key:"ss"},
+  {house:"Banana Republic",name:"Grassland",inspiration:"Creed Green Irish Tweed (style)",occ_key:"office",occ_detail:"Smart casual / office / daytime",s_key:"ss"},
+  {house:"Banana Republic",name:"Linen Vetiver",inspiration:"Original",occ_key:"office",occ_detail:"Office / minimalist casual / summer work",s_key:"ss"},
+  {house:"Banana Republic",name:"Vintage Green 78",inspiration:"Original",occ_key:"casual",occ_detail:"Casual / weekend / outdoors",s_key:"ss"},
+  {house:"Banana Republic",name:"Tobacco & Tonka Bean",inspiration:"Original",occ_key:"date",occ_detail:"Cozy evening / lounge / casual date",s_key:"fw"},
+  {house:"Banana Republic",name:"Midnight Hour",inspiration:"Original",occ_key:"evening",occ_detail:"Evening / date / social",s_key:"fw"},
+  {house:"Banana Republic",name:"Dark Cherry & Amber",inspiration:"Original",occ_key:"date",occ_detail:"Date night / cozy evening",s_key:"fw"},
+  {house:"Banana Republic",name:"Metal Rain",inspiration:"Original",occ_key:"casual",occ_detail:"Casual / outdoors / fresh air vibe",s_key:"ss"},
+  {house:"Designer Originals",name:"Bleu de Chanel EDT",inspiration:"Original",occ_key:"office",occ_detail:"Versatile / office / casual / date",s_key:"yr"},
+  {house:"Designer Originals",name:"Montblanc Legend Spirit",inspiration:"Original",occ_key:"casual",occ_detail:"Casual / sport / everyday",s_key:"ss"},
+  {house:"Designer Originals",name:"Nautica Voyage",inspiration:"Original",occ_key:"casual",occ_detail:"Casual / fresh / everyday / gym",s_key:"ss"},
+  {house:"Designer Originals",name:"Dior Sauvage EDP",inspiration:"Original",occ_key:"office",occ_detail:"Office / casual / date night",s_key:"yr"},
+  {house:"Designer Originals",name:"Davidoff Cool Water",inspiration:"Original",occ_key:"sport",occ_detail:"Casual / sport / gym / beach",s_key:"ss"},
+  {house:"Valencia / Millionaire",name:"Valencia Uomo Intense",inspiration:"Valentino Uomo Intense",occ_key:"date",occ_detail:"Date night / evening / romantic",s_key:"fw"},
+  {house:"Valencia / Millionaire",name:"Valencia Uomo Fantasy",inspiration:"Valentino Born in Roma Coral Fantasy",occ_key:"casual",occ_detail:"Casual / daytime / warm weather",s_key:"ss"},
+  {house:"Valencia / Millionaire",name:"Valencia Uomo",inspiration:"Valentino Born in Roma",occ_key:"casual",occ_detail:"Casual / smart casual / daytime",s_key:"ss"},
+  {house:"Valencia / Millionaire",name:"Millionaire Royal",inspiration:"Paco Rabanne 1 Million Royal",occ_key:"date",occ_detail:"Date night / club / evening",s_key:"fw"},
+  {house:"Khadlaj",name:"Island Dreams",inspiration:"Louis Vuitton Symphony",occ_key:"date",occ_detail:"Upscale casual / date / evening",s_key:"ss"},
+  {house:"Khadlaj",name:"Shiyaaka Snow",inspiration:"Louis Vuitton Météore",occ_key:"office",occ_detail:"Smart casual / office / daytime",s_key:"ss"},
+  {house:"Khadlaj",name:"Shiyaaka Blue",inspiration:"Bleu de Chanel (style)",occ_key:"office",occ_detail:"Office / casual / everyday",s_key:"yr"},
+  {house:"Khadlaj",name:"Epoque Artistique",inspiration:"Invictus Victory / Victory Elixir",occ_key:"date",occ_detail:"Date night / evening / formal",s_key:"fw"},
+  {house:"Mod Fragrances",name:"Haven Eclipse",inspiration:"Xerjoff Torino 22",occ_key:"date",occ_detail:"Smart casual / date / evening",s_key:"fw"},
+  {house:"Mod Fragrances",name:"Secret Embers",inspiration:"Initio Side Effect",occ_key:"date",occ_detail:"Date night / evening / seductive",s_key:"fw"},
+  {house:"Mod Fragrances",name:"Musk Melody",inspiration:"Initio Musk Therapy",occ_key:"casual",occ_detail:"Casual / skin-close / everyday",s_key:"yr"},
+  {house:"Mod Fragrances",name:"Reverence Extrait",inspiration:"Parfums de Marly Percival",occ_key:"office",occ_detail:"Smart casual / office / date",s_key:"ss"},
+  {house:"Mod Fragrances",name:"The Exposed Extrait",inspiration:"Mind Games En Prise",occ_key:"evening",occ_detail:"Evening / bold / statement",s_key:"fw"},
+  {house:"Rasasi",name:"Fattan",inspiration:"Terre d'Hermès",occ_key:"office",occ_detail:"Office / casual / everyday",s_key:"yr"},
+  {house:"Rasasi",name:"Hawas Ice",inspiration:"Original",occ_key:"sport",occ_detail:"Sport / gym / casual / fresh",s_key:"ss"},
+  {house:"Rasasi",name:"Hawas Kobra",inspiration:"Louis Vuitton Imagination",occ_key:"casual",occ_detail:"Casual / daytime / social",s_key:"ss"},
+  {house:"Zimaya",name:"Itqan Noir",inspiration:"YSL MYSLF",occ_key:"date",occ_detail:"Smart casual / date / evening",s_key:"fw"},
+  {house:"Zimaya",name:"Reverie Aqua Pour Homme",inspiration:"Valentino Born in Roma Intense",occ_key:"office",occ_detail:"Casual / office / daytime",s_key:"ss"},
+  {house:"Zimaya",name:"Abadi Opulent",inspiration:"YSL Y Elixir",occ_key:"date",occ_detail:"Date night / upscale casual / evening",s_key:"fw"},
+  {house:"Yom & Layl",name:"Wazir",inspiration:"Mind Games Queening",occ_key:"date",occ_detail:"Date / upscale casual / evening",s_key:"fw"},
+  {house:"Yom & Layl",name:"Raazi",inspiration:"Mind Games J'Adoube",occ_key:"evening",occ_detail:"Smart casual / social / evening",s_key:"fw"},
+  {house:"Yom & Layl",name:"Rayees",inspiration:"Mind Games Grand Masters",occ_key:"office",occ_detail:"Office / smart casual / daytime",s_key:"ss"},
+  {house:"Yom & Layl",name:"Nor",inspiration:"Mind Games Lionora",occ_key:"casual",occ_detail:"Casual / fresh / daytime",s_key:"ss"},
+  {house:"Yom & Layl",name:"Limitless",inspiration:"Mind Games Blockade",occ_key:"evening",occ_detail:"Evening / bold / statement",s_key:"fw"},
+  {house:"Yom & Layl",name:"Gladiator",inspiration:"Argos Triumph of Bacchus",occ_key:"special",occ_detail:"Special occasion / evening / grand statement",s_key:"fw"},
+  {house:"Armaf",name:"Le Parfait",inspiration:"Creed Aventus x Green Irish Tweed",occ_key:"office",occ_detail:"Office / smart casual / daytime",s_key:"ss"},
+  {house:"Armaf",name:"Club de Nuit Milestone",inspiration:"Creed Millésime Impérial",occ_key:"casual",occ_detail:"Smart casual / beach / summer date",s_key:"ss"},
+  {house:"Singles",name:"Anti Social Parfum Club - Most Wanted",inspiration:"Azzaro The Most Wanted",occ_key:"date",occ_detail:"Date night / casual evening / social",s_key:"fw"},
+  {house:"Singles",name:"Afnan Supremacy Collector's Edition",inspiration:"Creed Aventus Absolu",occ_key:"office",occ_detail:"Smart casual / office / date",s_key:"ss"},
+  {house:"Singles",name:"Ajmal Evoke Gold",inspiration:"Prada L'Homme",occ_key:"office",occ_detail:"Office / smart casual / everyday",s_key:"yr"},
+  {house:"Singles",name:"Al Haramain Detour Noir",inspiration:"Parfums de Marly Layton",occ_key:"date",occ_detail:"Date night / office / versatile dresser",s_key:"fw"},
+  {house:"Singles",name:"Crown / Al-Rehab Silver (oil)",inspiration:"Creed Silver Mountain Water",occ_key:"casual",occ_detail:"Casual / fresh / gym / daytime",s_key:"ss"},
+  {house:"Singles",name:"Atralia Amazonas Avalanche",inspiration:"Dior Homme Intense",occ_key:"date",occ_detail:"Date night / evening / formal",s_key:"fw"},
+  {house:"Singles",name:"French Avenue Liquid Brun",inspiration:"Parfums de Marly Althair",occ_key:"date",occ_detail:"Smart casual / date / evening",s_key:"fw"},
+  {house:"Singles",name:"Game of Spades Wildcard",inspiration:"Bond No. 9 Lafayette Street",occ_key:"evening",occ_detail:"Urban social / evening / creative",s_key:"fw"},
+  {house:"Singles",name:"Grandeur Iconic Built",inspiration:"YSL Bleu Electrique",occ_key:"evening",occ_detail:"Club / night out / bold evening",s_key:"fw"},
+  {house:"Singles",name:"Paris Corner Rifaqat",inspiration:"YSL Babycat",occ_key:"casual",occ_detail:"Casual / cozy / skin-close everyday",s_key:"fw"},
+  {house:"Singles",name:"Rayhaan Aquatica",inspiration:"Creed Virgin Island Water",occ_key:"casual",occ_detail:"Beach / vacation / casual summer",s_key:"ss"},
+  {house:"Singles",name:"Royalty by Maluma Onyx",inspiration:"1 Million Privé-adjacent",occ_key:"date",occ_detail:"Date night / club / evening",s_key:"fw"},
+  {house:"Singles",name:"Vurv Royce Black",inspiration:"1 Million Privé-adjacent",occ_key:"date",occ_detail:"Date night / club / evening",s_key:"fw"},
+  {house:"MIRIS Oils",name:"MIRIS No54602",inspiration:"Nishane Hacivat",occ_key:"casual",occ_detail:"Casual / office / everyday / layering",s_key:"ss",isBase:true},
+  {house:"MIRIS Oils",name:"MIRIS No56902",inspiration:"Kilian Apple Brandy on the Rocks",occ_key:"date",occ_detail:"Cozy evening / social / casual date",s_key:"fw"},
+  {house:"MIRIS Oils",name:"MIRIS No47319",inspiration:"JPG Ultra Male",occ_key:"evening",occ_detail:"Night out / club / date",s_key:"fw"},
+  {house:"MIRIS Oils",name:"MIRIS No59797",inspiration:"Carolina Herrera Bad Boy Cobalt Parfum Electrique",occ_key:"date",occ_detail:"Date night / evening / bold",s_key:"fw"},
+];
+
+const DEFAULT_LAYERS=[
+  {items:["Ottoman Breeze","His Perspective Extrait"],ratio:"2 + 2",desc:"Hacivat's green freshness married to Paradigme's powdery woods — an elevated office signature that outperforms either alone."},
+  {items:["Poseidon's Swimming Cologne","His Perspective Extrait"],ratio:"2 + 2",desc:"Aquatic chroma with a powdery musc anchor. The Afternoon Swim DNA turns brighter against Paradigme — beach-to-business in a single wear."},
+  {items:["Jean Lowe Immortal","Ameer Al Oudh Intense"],ratio:"2 : 1",desc:"L'Immensité's mineral-aquatic shimmer wrapped in By the Fireplace's smoked wood. 2:1 keeps aquatic brightness while oud grounds the sillage."},
+  {items:["Midnight Rendezvous","Aphrodisiac","Wazir"],ratio:"Trio",desc:"La Nuit de L'Homme base, Psychedelic Love heat, Wazir oil as skin anchor — a bold indoor evening statement."},
+  {items:["MIRIS No54602","His Perspective Extrait"],ratio:"Oil + Spray",desc:"MIRIS oil as skin-prep base before His Perspective Extrait — locks in Hacivat DNA and extends projection significantly on warm days."},
+  {items:["Ottoman Breeze","Poseidon's Swimming Cologne"],ratio:"2 + 2",desc:"Double-stacking the Hacivat/Aventus Cologne axis to create a saturated aquatic-fougère summer statement."},
+];
+
+// ============================================================
+// DB
+// ============================================================
+let DB={col:[],layers:[],st:{}};
+
+function uid(){return Math.random().toString(36).slice(2,9);}
+
+function loadDB(){
+  try{
+    const s=JSON.parse(localStorage.getItem('vault3')||'null');
+    if(s&&s.col&&s.col.length){DB=s;return;}
+  }catch{}
+  DB.col=DEFAULT_COL.map(f=>({...f}));
+  DB.layers=DEFAULT_LAYERS.map(l=>({...l,id:uid()}));
+  DB.st={};
+  DB.col.forEach(f=>{
+    DB.st[f.name]={};
+    if(DEFAULT_DNA[f.name])DB.st[f.name].dna=DEFAULT_DNA[f.name];
+    if(f.starred)DB.st[f.name].starred=true;
+  });
+  saveDB();
+}
+function saveDB(){localStorage.setItem('vault3',JSON.stringify(DB));}
+function gst(n){if(!DB.st[n])DB.st[n]={};return DB.st[n];}
+function esc(s){return(s+'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');}
+function today(){return new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});}
+function season(k){return{ss:"Spring · Summer",fw:"Fall · Winter",yr:"Year-round"}[k]||k;}
+
+// ============================================================
+// NAV
+// ============================================================
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  ({analytics:renderAnalytics,rotation:renderRotation,layering:renderLayering,classification:renderClassification,starred:renderStarred})[id]?.();
+  updateStats();
+}
+
+// ============================================================
+// GRID
+// ============================================================
+function filtered(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const fh=document.getElementById('fh').value,fs=document.getElementById('fs').value,
+        fo=document.getElementById('fo').value,fd=document.getElementById('fd').value;
+  return DB.col.filter(f=>{
+    if(fh&&f.house!==fh)return false;
+    if(fs&&f.s_key!==fs)return false;
+    if(fo&&f.occ_key!==fo)return false;
+    if(fd&&(gst(f.name).dna||'')!==fd)return false;
+    if(q&&!(f.name+f.inspiration+f.house+f.occ_detail).toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+
+function renderGrid(){
+  const list=filtered();
+  document.getElementById('grid-count').textContent=list.length+' fragrance'+(list.length!==1?'s':'');
+  const g=document.getElementById('grid');
+  if(!list.length){g.innerHTML='<div class="empty-st"><em>No results</em>Try a different filter</div>';return;}
+  g.innerHTML=list.map(f=>{
+    const st=gst(f.name),isS=st.starred||f.starred,dna=st.dna||'';
+    const dcol=dna?DNA_FAMILIES[dna]?.color:'';
+    const dtag=dna?`<span class="tag" style="border-color:${dcol}33;color:${dcol};font-size:6.5px;">${dna}</span>`:'';
+    const btag=f.isBase?`<span class="tag tbase">BASE</span>`:'';
+    return `<div class="card ${f.s_key}${isS?' starred':''}" onclick="openModal('${esc(f.name)}')">
+      <span class="card-star">★</span>
+      <div class="card-house">${f.house}</div>
+      <div class="card-name">${f.name}</div>
+      <div class="card-insp">${f.inspiration}</div>
+      <div class="card-tags"><span class="tag ${OCC_CLS[f.occ_key]}">${OCC_LBL[f.occ_key]}</span><span class="tag tsea">${season(f.s_key)}</span>${dtag}${btag}</div>
+      <button class="card-del" onclick="event.stopPropagation();confirmDel('${esc(f.name)}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function populateHouses(){
+  const houses=[...new Set(DB.col.map(f=>f.house))].sort();
+  const sel=document.getElementById('fh');
+  sel.innerHTML='<option value="">All Houses</option>';
+  houses.forEach(h=>{const o=document.createElement('option');o.value=h;o.textContent=h;sel.appendChild(o);});
+  const dl=document.getElementById('house-dl');
+  dl.innerHTML='';
+  houses.forEach(h=>{const o=document.createElement('option');o.value=h;dl.appendChild(o);});
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+let CUR=null;
+
+function openModal(name){
+  const f=DB.col.find(x=>x.name===name);
+  if(!f)return;
+  CUR=name;
+  const st=gst(name);
+  document.getElementById('m-house').textContent=f.house;
+  document.getElementById('m-name').textContent=f.name;
+  document.getElementById('m-insp').textContent='← '+f.inspiration;
+  document.getElementById('m-occ').textContent=f.occ_detail;
+  document.getElementById('m-sea').textContent=season(f.s_key);
+  document.getElementById('m-wears').textContent=(st.wears||[]).length||'—';
+  document.getElementById('m-notes').value=st.notes||'';
+  renderDNAGrid(st.dna||'');
+  renderStarsEl(st.rating||0);
+  renderLayerList();
+  renderWearLog();
+  const sb=document.getElementById('m-star-btn');
+  const starred=st.starred||f.starred;
+  sb.textContent=starred?'★ Starred':'☆ Star';
+  sb.style.color=starred?'var(--gold)':'';
+  document.getElementById('det-overlay').classList.remove('hidden');
+  document.getElementById('m-layer-form').classList.add('hidden');
+}
+
+function renderDNAGrid(cur){
+  document.getElementById('m-dna-grid').innerHTML=Object.keys(DNA_FAMILIES).map(fam=>{
+    const col=DNA_FAMILIES[fam].color;
+    const isSel=cur===fam;
+    return `<div class="cpill${isSel?' sel':''}" style="${isSel?`border-color:${col};color:${col};background:${col}18;`:''}" onclick="setDNA('${esc(fam)}')">${fam}</div>`;
+  }).join('');
+}
+
+function renderStarsEl(r){
+  document.getElementById('m-stars').innerHTML=[1,2,3,4,5].map(i=>`<span class="star${r>=i?' lit':''}" onclick="setRating(${i})">★</span>`).join('');
+}
+
+function renderLayerList(){
+  const st=gst(CUR);
+  const personal=st.layers||[];
+  const global=DB.layers.filter(c=>c.items.some(x=>x.toLowerCase()===CUR.toLowerCase()||x.toLowerCase().includes(CUR.toLowerCase())));
+  let html='';
+  if(global.length) html+=global.map(c=>`<div class="lc-row"><div style="flex:1"><div class="lc-names">${c.items.join(' + ')}</div><div class="lc-ratio">${c.ratio} · <span style="color:var(--gold-dim);">Global Combo</span></div><div class="lc-desc">${c.desc}</div></div></div>`).join('');
+  if(personal.length) html+=personal.map((c,i)=>`<div class="lc-row"><div style="flex:1"><div class="lc-names">${c.items.join(' + ')}</div><div class="lc-ratio">${c.ratio} · <span style="color:var(--aqua);">Personal</span></div><div class="lc-desc">${c.desc}</div></div><button class="lc-del" onclick="delBottleLayer(${i})">✕</button></div>`).join('');
+  if(!html) html='<div style="font-size:9.5px;color:var(--dove);padding:6px 0;font-style:italic;">No combos yet.</div>';
+  document.getElementById('m-layer-list').innerHTML=html;
+}
+
+function renderWearLog(){
+  const st=gst(CUR),wears=st.wears||[];
+  const el=document.getElementById('m-wear-log');
+  if(!wears.length){el.innerHTML='<div class="wear-entry"><span style="font-style:italic;color:var(--dove);">No wears logged yet.</span></div>';return;}
+  el.innerHTML=[...wears].reverse().slice(0,8).map(d=>`<div class="wear-entry"><span class="wear-date">${d}</span><span style="font-size:7.5px;letter-spacing:.1em;color:var(--gold-dim);">WORN</span></div>`).join('');
+}
+
+function closeDetModal(e){if(e.target===document.getElementById('det-overlay'))closeDetDirect();}
+function closeDetDirect(){document.getElementById('det-overlay').classList.add('hidden');CUR=null;renderGrid();updateStats();}
+function saveNotes(){if(!CUR)return;gst(CUR).notes=document.getElementById('m-notes').value;saveDB();}
+
+function setDNA(fam){
+  if(!CUR)return;
+  gst(CUR).dna=fam;saveDB();
+  renderDNAGrid(fam);
+}
+
+function setRating(r){
+  if(!CUR)return;
+  gst(CUR).rating=r;saveDB();
+  renderStarsEl(r);
+}
+
+function logWear(){
+  if(!CUR)return;
+  const st=gst(CUR);
+  if(!st.wears)st.wears=[];
+  st.wears.push(today());saveDB();
+  document.getElementById('m-wears').textContent=st.wears.length;
+  renderWearLog();updateStats();
+}
+
+function toggleStar(){
+  if(!CUR)return;
+  const st=gst(CUR);st.starred=!st.starred;saveDB();
+  const sb=document.getElementById('m-star-btn');
+  sb.textContent=st.starred?'★ Starred':'☆ Star';
+  sb.style.color=st.starred?'var(--gold)':'';
+  updateStats();
+}
+
+function toggleLayerForm(){document.getElementById('m-layer-form').classList.toggle('hidden');}
+
+function saveBottleLayer(){
+  const items=document.getElementById('lf-items').value.trim();
+  const ratio=document.getElementById('lf-ratio').value.trim();
+  const desc=document.getElementById('lf-desc').value.trim();
+  if(!items)return;
+  const st=gst(CUR);if(!st.layers)st.layers=[];
+  const all=[CUR,...items.split(',').map(s=>s.trim()).filter(Boolean)];
+  st.layers.push({items:all,ratio:ratio||'—',desc:desc||''});
+  saveDB();
+  ['lf-items','lf-ratio','lf-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-layer-form').classList.add('hidden');
+  renderLayerList();
+}
+
+function delBottleLayer(idx){
+  const st=gst(CUR);st.layers.splice(idx,1);saveDB();renderLayerList();
+}
+
+function deleteCurrentBottle(){
+  if(!CUR)return;
+  closeDetDirect();
+  setTimeout(()=>confirmDel(CUR),60);
+}
+
+// ============================================================
+// ADD / REMOVE
+// ============================================================
+function openAddModal(){
+  document.getElementById('add-overlay').classList.remove('hidden');
+  ['af-house','af-name','af-insp','af-occ-detail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('af-base').checked=false;
+}
+function closeAddOverlay(e){if(e.target===document.getElementById('add-overlay'))document.getElementById('add-overlay').classList.add('hidden');}
+
+function addBottle(){
+  const house=document.getElementById('af-house').value.trim();
+  const name=document.getElementById('af-name').value.trim();
+  const insp=document.getElementById('af-insp').value.trim()||'Original';
+  const occ_key=document.getElementById('af-occ').value;
+  const s_key=document.getElementById('af-sea').value;
+  const dna=document.getElementById('af-dna').value;
+  const isBase=document.getElementById('af-base').checked;
+  const occ_detail=document.getElementById('af-occ-detail').value.trim()||'Casual / everyday';
+  if(!house||!name){alert('House and name are required.');return;}
+  if(DB.col.find(f=>f.name.toLowerCase()===name.toLowerCase())){alert('A bottle with this name already exists.');return;}
+  DB.col.push({house,name,inspiration:insp,occ_key,occ_detail,s_key,isBase});
+  if(dna)gst(name).dna=dna;
+  saveDB();
+  document.getElementById('add-overlay').classList.add('hidden');
+  populateHouses();populateSugSelect();renderGrid();updateStats();
+}
+
+function confirmDel(name){
+  document.getElementById('conf-msg').textContent=`Remove "${name}" from your vault? This cannot be undone.`;
+  document.getElementById('conf-overlay').classList.remove('hidden');
+  document.getElementById('conf-yes').onclick=()=>{
+    DB.col=DB.col.filter(f=>f.name!==name);
+    delete DB.st[name];
+    saveDB();
+    document.getElementById('conf-overlay').classList.add('hidden');
+    populateHouses();populateSugSelect();renderGrid();updateStats();
+    const active=document.querySelector('.page.active');
+    if(active?.id==='page-starred')renderStarred();
+  };
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats(){
+  document.getElementById('s-total').textContent=DB.col.length;
+  document.getElementById('s-houses').textContent=new Set(DB.col.map(f=>f.house)).size;
+  document.getElementById('s-worn').textContent=Object.values(DB.st).reduce((s,st)=>s+(st.wears||[]).length,0);
+  document.getElementById('s-starred').textContent=DB.col.filter(f=>gst(f.name).starred||f.starred).length;
+}
+
+// ============================================================
+// DNA CLASSIFICATION
+// ============================================================
+let activeDNA=null;
+function renderClassification(){
+  const fams={};
+  Object.keys(DNA_FAMILIES).forEach(f=>fams[f]=[]);fams['Unclassified']=[];
+  DB.col.forEach(f=>{const d=gst(f.name).dna||'';(fams[d]||fams['Unclassified']).push(f);});
+  const allF=[...Object.keys(DNA_FAMILIES),'Unclassified'];
+  document.getElementById('dna-families').innerHTML=allF.map(fam=>{
+    const items=fams[fam]||[];
+    const col=DNA_FAMILIES[fam]?.color||'var(--dove)';
+    const preview=items.slice(0,3).map(f=>f.name).join(', ')+(items.length>3?` … +${items.length-3} more`:'');
+    return `<div class="dnaf" style="border-color:${col};" onclick="toggleDNA('${esc(fam)}')">
+      <div class="dnaf-name">${fam}</div>
+      <div class="dnaf-ct">${items.length} bottle${items.length!==1?'s':''}</div>
+      ${items.length?`<div class="dnaf-list">${preview}</div>`:''}
+    </div>`;
+  }).join('');
+  if(activeDNA){showDNAPanel(activeDNA,fams);}else{document.getElementById('dna-panel').classList.remove('open');}
+}
+
+function toggleDNA(fam){
+  activeDNA=activeDNA===fam?null:fam;renderClassification();
+}
+
+function showDNAPanel(fam,fams){
+  const items=fams[fam]||[];
+  const col=DNA_FAMILIES[fam]?.color||'var(--dove)';
+  const desc=DNA_FAMILIES[fam]?.desc||'';
+  const panel=document.getElementById('dna-panel');
+  panel.innerHTML=`<div style="margin-bottom:16px;"><div style="font-family:'Cormorant Garamond',serif;font-size:21px;color:${col};margin-bottom:3px;">${fam}</div><div style="font-size:9.5px;color:var(--dove);letter-spacing:.05em;">${desc}</div></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(255px,1fr));">${
+    items.map(f=>`<div class="card ${f.s_key}${(gst(f.name).starred||f.starred)?' starred':''}" onclick="openModal('${esc(f.name)}')">
+      <span class="card-star">★</span>
+      <div class="card-house">${f.house}</div>
+      <div class="card-name">${f.name}</div>
+      <div class="card-insp">${f.inspiration}</div>
+      <div class="card-tags"><span class="tag ${OCC_CLS[f.occ_key]}">${OCC_LBL[f.occ_key]}</span><span class="tag tsea">${season(f.s_key)}</span></div>
+    </div>`).join('')}
+  </div>`;
+  panel.classList.add('open');
+}
+
+// ============================================================
+// LAYERING SUGGESTER
+// ============================================================
+let sugSpray = 2;
+
+function renderSprayDots() {
+  const max = 6;
+  document.getElementById('spray-num').textContent = sugSpray;
+  document.getElementById('spray-dots').innerHTML = Array.from({length: max}, (_,i) =>
+    `<div class="spray-dot${i < sugSpray ? ' active' : ''}"></div>`
+  ).join('');
+}
+
+function changeSpray(d) {
+  sugSpray = Math.max(1, Math.min(6, sugSpray + d));
+  renderSprayDots();
+}
+
+function populateSugSelect() {
+  const sel = document.getElementById('sug-frag');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Select a fragrance to layer\u2026</option>';
+  [...DB.col].sort((a,b) => a.name.localeCompare(b.name)).forEach(f => {
+    const o = document.createElement('option');
+    o.value = f.name;
+    o.textContent = f.name + ' \u2014 ' + f.house;
+    sel.appendChild(o);
+  });
+  if(cur) sel.value = cur;
+}
+
+function runSuggester() {
+  const fragName = document.getElementById('sug-frag').value;
+  if (!fragName) { alert('Please select a fragrance first.'); return; }
+  const frag = DB.col.find(f => f.name === fragName);
+  if (!frag) return;
+
+  const resultsEl = document.getElementById('sug-results');
+  resultsEl.className = 'sug-results open';
+  resultsEl.innerHTML = '<div class="sug-loading"><em>Analyzing your vault…</em></div>';
+
+  setTimeout(() => {
+    try {
+      const suggestions = buildSuggestions(fragName, frag);
+      renderSuggestions(suggestions, fragName, frag);
+    } catch(e) {
+      resultsEl.innerHTML = `<div class="sug-err"><strong>Error:</strong> ${e.message}</div>`;
+    }
+  }, 400);
+}
+
+// DNA pairing compatibility map — which families layer well together
+const DNA_COMPAT = {
+  "Aquatic / Marine":    ["Fougère","Woody / Aromatic","Citrus / Fresh","Musky / Skin","Chypre"],
+  "Fougère":             ["Aquatic / Marine","Woody / Aromatic","Citrus / Fresh","Musky / Skin","Oriental / Amber"],
+  "Woody / Aromatic":    ["Fougère","Aquatic / Marine","Oriental / Amber","Tobacco / Smoky","Musky / Skin"],
+  "Oriental / Amber":    ["Gourmand","Woody / Aromatic","Tobacco / Smoky","Oud / Resinous","Floral"],
+  "Oud / Resinous":      ["Oriental / Amber","Woody / Aromatic","Tobacco / Smoky","Floral","Musky / Skin"],
+  "Citrus / Fresh":      ["Aquatic / Marine","Fougère","Musky / Skin","Floral","Chypre"],
+  "Gourmand":            ["Oriental / Amber","Tobacco / Smoky","Woody / Aromatic","Musky / Skin","Floral"],
+  "Floral":              ["Oriental / Amber","Citrus / Fresh","Musky / Skin","Oud / Resinous","Chypre"],
+  "Chypre":              ["Floral","Citrus / Fresh","Woody / Aromatic","Aquatic / Marine","Musky / Skin"],
+  "Tobacco / Smoky":     ["Oriental / Amber","Gourmand","Oud / Resinous","Woody / Aromatic","Musky / Skin"],
+  "Musky / Skin":        ["Aquatic / Marine","Floral","Citrus / Fresh","Fougère","Gourmand"],
+};
+
+// Application order logic by DNA pairing
+function getOrder(baseDNA, partnerDNA) {
+  const heavy = ["Oud / Resinous","Oriental / Amber","Tobacco / Smoky","Gourmand","Woody / Aromatic"];
+  const light  = ["Aquatic / Marine","Citrus / Fresh","Fougère","Musky / Skin","Floral"];
+  const baseHeavy = heavy.includes(baseDNA);
+  const partHeavy = heavy.includes(partnerDNA);
+  if (baseHeavy && !partHeavy) return "Apply the partner first as a fresh top layer, then the base on pulse points.";
+  if (!baseHeavy && partHeavy) return "Apply the base first to skin, then layer the partner on top for depth.";
+  if (heavy.includes(partnerDNA)) return "Apply partner to wrists first, then base on chest and neck.";
+  return "Apply base to skin first, then mist the partner lightly over the top.";
+}
+
+// Pairing notes by DNA combination
+function getPairingNote(baseName, baseDNA, partnerName, partnerDNA, partnerInsp) {
+  const pairs = {
+    "Aquatic / Marine+Fougère": `The aquatic-fougère axis is a proven pairing — the marine freshness of ${baseName} opens up the lavender and herbal structure of ${partnerName}, creating an elevated beach-to-office signature with excellent longevity.`,
+    "Aquatic / Marine+Woody / Aromatic": `${partnerName}'s woody base anchors the volatile marine top notes of ${baseName}, giving the combo far more staying power than either alone. The result is a refined aquatic with sandalwood depth.`,
+    "Aquatic / Marine+Musky / Skin": `Layering ${partnerName}'s close skin musk under ${baseName} creates a skin-scent effect where the aquatic notes feel like they're emanating from the body itself — intimate and effortless.`,
+    "Aquatic / Marine+Citrus / Fresh": `Both fragrances share a clean, transparent character — ${baseName} adds marine depth while ${partnerName} brings citrus brightness, compounding into a vivid, ultra-fresh signature.`,
+    "Fougère+Aquatic / Marine": `The fougère backbone of ${baseName} gains luminous transparency when layered with ${partnerName}'s aquatic character, mimicking a luxury niche accord at a fraction of the cost.`,
+    "Fougère+Woody / Aromatic": `${baseName}'s herbal-lavender structure sits perfectly on ${partnerName}'s woody base — coumarin and cedarwood are natural companions that deepen the fougère family.`,
+    "Fougère+Oriental / Amber": `Adding ${partnerName}'s warm amber depth beneath ${baseName} transforms the classic fougère into an evening-ready accord — the aromatic herbs become richer and more animalic.`,
+    "Woody / Aromatic+Fougère": `${partnerName} acts as a freshening agent on top of ${baseName}'s woody base — the lavender and oakmoss lift the heavier woods and extend the opening significantly.`,
+    "Woody / Aromatic+Aquatic / Marine": `The woody backbone of ${baseName} gives ${partnerName}'s marine notes something solid to cling to — this is the classic structure of many designer aquatics, here assembled by hand.`,
+    "Woody / Aromatic+Oriental / Amber": `${baseName} and ${partnerName} share a warm, resinous undercurrent — combined they create a rich, ambery wood accord with excellent projection and a long dry-down.`,
+    "Woody / Aromatic+Musky / Skin": `${partnerName} softens the harder edges of ${baseName}, pulling the woody accord closer to skin and making it feel more personal — a superb office-to-evening transition.`,
+    "Oriental / Amber+Gourmand": `Both ${baseName} and ${partnerName} occupy the warm-sweet spectrum — layered, they create an indulgent gourmand-oriental that's especially powerful in cold weather.`,
+    "Oriental / Amber+Woody / Aromatic": `${partnerName}'s cedarwood and vetiver add a drying, angular counterpoint to ${baseName}'s sweetness, preventing it from reading as heavy while amplifying the sillage trail.`,
+    "Oriental / Amber+Tobacco / Smoky": `The combination of ${baseName}'s amber warmth and ${partnerName}'s tobacco character creates a sophisticated, slow-burning evening accord reminiscent of a jazz club after midnight.`,
+    "Oriental / Amber+Oud / Resinous": `${baseName} and ${partnerName} are natural companions in Middle Eastern perfumery — the amber sweetness lifts and softens the oud, creating a luxurious, long-lasting resinous accord.`,
+    "Gourmand+Oriental / Amber": `${partnerName}'s amber structure gives ${baseName}'s sweet notes a sophisticated framework, elevating the gourmand from dessert to evening occasion.`,
+    "Gourmand+Tobacco / Smoky": `${partnerName}'s tobacco smokiness adds a savory, mature counterpoint to ${baseName}'s sweetness — together they read as a dark, complex confection rather than simply sweet.`,
+    "Gourmand+Woody / Aromatic": `The woody dryness of ${partnerName} tempers the sweetness of ${baseName}, creating a balanced gourmand-wood accord suitable from afternoon into evening.`,
+    "Tobacco / Smoky+Oriental / Amber": `${baseName}'s tobacco character is amplified by ${partnerName}'s resinous warmth — a deeply satisfying, long-lasting evening combination.`,
+    "Tobacco / Smoky+Gourmand": `${partnerName} wraps ${baseName}'s smoky character in sweetness, creating the olfactive equivalent of vanilla pipe tobacco — intimate and highly original.`,
+    "Oud / Resinous+Oriental / Amber": `${partnerName}'s amber sweetness rounds out the rough edges of ${baseName}'s oud, creating a more approachable, wearable luxury accord without losing the depth.`,
+    "Oud / Resinous+Floral": `A classic Middle Eastern pairing — ${partnerName}'s florals bloom over ${baseName}'s resinous base, creating an opulent, multi-dimensional accord.`,
+    "Musky / Skin+Aquatic / Marine": `${partnerName} gives ${baseName}'s skin musk an airy, outdoors quality — the combination reads as effortlessly clean without being sterile.`,
+    "Musky / Skin+Floral": `${baseName}'s soft musk backdrop amplifies ${partnerName}'s floral character, making the blooms feel more intimate and natural against skin.`,
+    "Floral+Oriental / Amber": `${partnerName}'s warm amber elevates ${baseName}'s florals into evening-worthy territory — the sweetness deepens the petals and extends the sillage considerably.`,
+    "Citrus / Fresh+Aquatic / Marine": `Both fragrances share transparent, luminous DNA — together they create a saturated, sparkling accord that's the olfactive equivalent of sunlight on water.`,
+    "Citrus / Fresh+Fougère": `The citrus brightness of ${baseName} and the herbal freshness of ${partnerName} are natural allies — this combination is the backbone of countless classic barbershop and sport fragrances.`,
+  };
+  const key = baseDNA + '+' + partnerDNA;
+  const reverseKey = partnerDNA + '+' + baseDNA;
+  return pairs[key] || pairs[reverseKey] || 
+    `${baseName} and ${partnerName} share complementary aromatic profiles — their combination creates an accord greater than either alone, with the ${baseDNA.toLowerCase()} character of the base harmonizing naturally with the ${partnerDNA.toLowerCase()} partner. The layering adds dimension and longevity, with the two fragrances blending at the skin level over the first hour of wear.`;
+}
+
+function getOccasionLabel(occ_key, season) {
+  const map = {date:'Date Night', office:'Office / Day', evening:'Evening Out', casual:'Casual Wear', sport:'Active / Sport', special:'Special Occasion'};
+  return map[occ_key] || 'Versatile';
+}
+
+function buildSuggestions(fragName, frag) {
+  const baseDNA = gst(fragName).dna || DEFAULT_DNA[fragName] || '';
+  const compat = DNA_COMPAT[baseDNA] || Object.keys(DNA_FAMILIES);
+
+  // Score every other bottle
+  const scored = DB.col
+    .filter(f => f.name !== fragName)
+    .map(f => {
+      const fDNA = gst(f.name).dna || DEFAULT_DNA[f.name] || '';
+      let score = 0;
+      const compatIdx = compat.indexOf(fDNA);
+      if (fDNA === baseDNA) score += 3;            // same DNA — layering within family
+      else if (compatIdx === 0) score += 10;       // top compat
+      else if (compatIdx === 1) score += 8;
+      else if (compatIdx === 2) score += 6;
+      else if (compatIdx >= 3) score += 4;
+      if (f.isBase) score += 4;                    // bases are great partners
+      if (f.s_key === frag.s_key) score += 2;      // same season
+      if (f.occ_key === frag.occ_key) score += 1;  // same occasion
+      // add slight randomness so we get varied results each time
+      score += Math.random() * 2;
+      return {f, fDNA, score};
+    })
+    .sort((a, b) => b.score - a.score);
+
+  // Pick top 4 — try to get variety in DNA
+  const seen = new Set();
+  seen.add(baseDNA);
+  const picks = [];
+  // First pass: diverse DNA
+  for (const s of scored) {
+    if (picks.length >= 4) break;
+    if (!seen.has(s.fDNA)) { seen.add(s.fDNA); picks.push(s); }
+  }
+  // Second pass: fill remaining from top scores
+  for (const s of scored) {
+    if (picks.length >= 4) break;
+    if (!picks.includes(s)) picks.push(s);
+  }
+
+  // Spray count logic: heavier DNA gets more sprays
+  const heavyDNA = ["Oud / Resinous","Oriental / Amber","Tobacco / Smoky","Gourmand"];
+  function partnerSprays(dna) {
+    if (heavyDNA.includes(dna)) return Math.max(1, sugSpray - 1);
+    return Math.min(4, sugSpray + 1);
+  }
+
+  const occasions = ['Date Night','Office / Day','Evening Out','Weekend Casual'];
+
+  return picks.slice(0,4).map((s, i) => ({
+    partner: s.f.name,
+    partnerSprays: partnerSprays(s.fDNA),
+    order: getOrder(baseDNA, s.fDNA),
+    occasion: occasions[i] || getOccasionLabel(s.f.occ_key, s.f.s_key),
+    note: getPairingNote(fragName, baseDNA, s.f.name, s.fDNA, s.f.inspiration),
+    partnerDNA: s.fDNA,
+  }));
+}
+
+function renderSuggestions(suggestions, fragName, frag) {
+  const resultsEl = document.getElementById('sug-results');
+  const dna = gst(fragName).dna || DEFAULT_DNA[fragName] || '';
+  const dnaCol = dna ? (DNA_FAMILIES[dna]?.color||'var(--gold)') : 'var(--gold)';
+
+  const dots = (n,col) => Array.from({length:Math.min(n,6)},()=>`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${col};margin-right:2px;opacity:.85;"></span>`).join('');
+  const labels = ['I','II','III','IV'];
+
+  const cards = suggestions.map((s,i) => {
+    const pDNA = gst(s.partner).dna || DEFAULT_DNA[s.partner] || '';
+    const pCol = pDNA ? (DNA_FAMILIES[pDNA]?.color||'var(--dove)') : 'var(--dove)';
+    return `<div class="sug-card" style="border-color:${pCol}55;">
+      <div class="sug-card-title" style="color:${pCol};">Pairing ${labels[i]} &mdash; ${s.occasion}</div>
+      <div class="sug-combo-row">
+        <span class="sug-frag">${fragName}</span>
+        <span class="sug-sprays" style="border-color:${dnaCol}44;color:${dnaCol};">${sugSpray} spray${sugSpray!==1?'s':''}&nbsp;${dots(sugSpray,dnaCol)}</span>
+      </div>
+      <div class="sug-combo-row">
+        <span class="sug-plus">+</span>
+        <span class="sug-frag">${s.partner}</span>
+        <span class="sug-sprays" style="border-color:${pCol}44;color:${pCol};">${s.partnerSprays} spray${s.partnerSprays!==1?'s':''}&nbsp;${dots(s.partnerSprays,pCol)}</span>
+      </div>
+      ${pDNA?`<div style="font-size:7px;letter-spacing:.13em;text-transform:uppercase;color:${pCol};margin:5px 0 3px;opacity:.75;">Partner DNA: ${pDNA}</div>`:''}
+      <div class="sug-note">${s.note}</div>
+      <div class="sug-occasion" style="margin-top:7px;font-style:italic;">${s.order}</div>
+      <button class="btn btn-muted" style="margin-top:11px;font-size:7px;padding:4px 10px;" onclick="saveSugCombo('${esc(fragName)}',${sugSpray},'${esc(s.partner)}',${s.partnerSprays},'${esc(s.note)}','${esc(s.occasion)}',this)">Save to Vault</button>
+    </div>`;
+  }).join('');
+
+  resultsEl.innerHTML = `<div class="sug-chosen" style="margin-top:4px;">
+    <span class="sug-chosen-name">${fragName}</span>
+    <span class="sug-arrow">&rarr;</span>
+    <span class="sug-chosen-spray">${sugSpray} spray${sugSpray!==1?'s':''} &nbsp;&middot;&nbsp; ${suggestions.length} pairings found</span>
+  </div><div class="sug-cards">${cards}</div>`;
+}
+
+function saveSugCombo(base, bSprays, partner, pSprays, note, occasion, btn) {
+  DB.layers.push({id:uid(),items:[base,partner],ratio:`${bSprays} + ${pSprays} sprays`,desc:`${occasion} — ${note}`});
+  saveDB();
+  renderLayering();
+  btn.textContent='Saved \u2713';
+  btn.style.color='var(--forest)';
+  btn.style.borderColor='var(--forest)';
+  setTimeout(()=>{btn.textContent='Save to Vault';btn.style.color='';btn.style.borderColor='';},2200);
+}
+
+// ============================================================
+// LAYERING LAB
+// ============================================================
+function renderLayering(){
+  const personal=[];
+  Object.entries(DB.st).forEach(([name,st])=>(st.layers||[]).forEach(c=>personal.push({...c,_from:name})));
+  const all=[...DB.layers,...personal];
+  document.getElementById('lab-ct').textContent=all.length+' combo'+(all.length!==1?'s':'');
+  const bases=DB.col.filter(f=>f.isBase);
+  const baseSection=`<div class="lcard" style="grid-column:1/-1;border:1px solid rgba(201,168,76,.13);">
+    <div class="atitle">Layering Bases — Your Anchor Fragrances</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;">${bases.map(f=>`<div style="padding:5px 11px;border:1px solid rgba(201,168,76,.2);font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--cream);">${f.name} <span style="font-size:7.5px;color:var(--gold-dim);">${f.house.replace('The ','')}</span></div>`).join('')}</div>
+  </div>`;
+  const comboHtml=all.map(c=>`<div class="lcard">
+    <div class="atitle">${c._from?'Personal Combo':'Established Combo'}</div>
+    <div class="lcomb">${c.items.map((it,i)=>`<span class="litem">${it}</span>${i<c.items.length-1?'<span class="lplus">+</span>':''}`).join('')}<span class="lratio">${c.ratio}</span></div>
+    <div class="ldesc">${c.desc}</div>
+    ${!c._from?`<button class="btn btn-danger" style="margin-top:9px;font-size:7px;padding:4px 10px;" onclick="delGlobalLayer('${esc(c.id)}')">Remove</button>`:''}
+  </div>`).join('');
+  document.getElementById('lab-grid').innerHTML=baseSection+comboHtml;
+}
+
+function toggleGLForm(){document.getElementById('gl-form').classList.toggle('hidden');}
+
+function saveGlobalLayer(){
+  const items=document.getElementById('gl-items').value.trim();
+  const ratio=document.getElementById('gl-ratio').value.trim();
+  const desc=document.getElementById('gl-desc').value.trim();
+  if(!items)return;
+  DB.layers.push({id:uid(),items:items.split(',').map(s=>s.trim()).filter(Boolean),ratio:ratio||'—',desc:desc||''});
+  saveDB();
+  ['gl-items','gl-ratio','gl-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('gl-form').classList.add('hidden');
+  renderLayering();
+}
+
+function delGlobalLayer(id){DB.layers=DB.layers.filter(c=>c.id!==id);saveDB();renderLayering();}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderAnalytics(){
+  const houses={};DB.col.forEach(f=>houses[f.house]=(houses[f.house]||0)+1);
+  const hS=Object.entries(houses).sort((a,b)=>b[1]-a[1]);const mH=hS[0]?.[1]||1;
+  document.getElementById('ch-houses').innerHTML=hS.map(([h,n])=>`<div class="br"><div class="blbl" title="${h}">${h}</div><div class="btrack"><div class="bfill" style="width:${(n/mH*100).toFixed(1)}%"></div></div><div class="bnum">${n}</div></div>`).join('');
+
+  const sea={'Spring · Summer':0,'Fall · Winter':0,'Year-round':0};
+  DB.col.forEach(f=>{const s=season(f.s_key);sea[s]=(sea[s]||0)+1;});
+  const sCols=['#3a7585','#c9a84c','#6b6358'];const sKeys=Object.keys(sea);const tot=DB.col.length;
+  let off=25;
+  document.getElementById('donut-s').innerHTML=`<circle cx="18" cy="18" r="15.9" fill="transparent" stroke="rgba(201,168,76,.07)" stroke-width="3.5"/>` +
+    sKeys.map((k,i)=>{const p=sea[k]/tot*100;const path=`<circle cx="18" cy="18" r="15.9" fill="transparent" stroke="${sCols[i]}" stroke-width="3.5" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${-off}"/>`;off-=p;return path;}).join('');
+  document.getElementById('legend-s').innerHTML=sKeys.map((k,i)=>`<div class="li"><div class="ldot" style="background:${sCols[i]}"></div>${k} · ${sea[k]}</div>`).join('');
+
+  const occs={date:0,office:0,evening:0,casual:0,sport:0,special:0};
+  DB.col.forEach(f=>occs[f.occ_key]=(occs[f.occ_key]||0)+1);
+  const mO=Math.max(...Object.values(occs));
+  document.getElementById('ch-occ').innerHTML=Object.entries(occs).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<div class="br"><div class="blbl">${OCC_LBL[k]}</div><div class="btrack"><div class="bfill" style="width:${(n/mO*100).toFixed(1)}%"></div></div><div class="bnum">${n}</div></div>`).join('');
+
+  const dnaC={};DB.col.forEach(f=>{const d=gst(f.name).dna||'Unclassified';dnaC[d]=(dnaC[d]||0)+1;});
+  const dS=Object.entries(dnaC).sort((a,b)=>b[1]-a[1]);const mD=dS[0]?.[1]||1;
+  document.getElementById('ch-dna').innerHTML=dS.map(([k,n])=>{const col=DNA_FAMILIES[k]?.color||'var(--dove)';return`<div class="br"><div class="blbl" title="${k}">${k}</div><div class="btrack"><div class="bfill" style="width:${(n/mD*100).toFixed(1)}%;background:linear-gradient(90deg,${col}77,${col})"></div></div><div class="bnum">${n}</div></div>`;}).join('');
+
+  const wears=Object.values(DB.st).reduce((s,st)=>s+(st.wears||[]).length,0);
+  const starred=DB.col.filter(f=>gst(f.name).starred||f.starred).length;
+  document.getElementById('a-total').textContent=DB.col.length;
+  document.getElementById('a-overview').innerHTML=`${new Set(DB.col.map(f=>f.house)).size} houses represented<br>${DB.col.filter(f=>f.isBase).length} layering bases<br>${starred} starred bottles<br>${wears} total wears logged<br>${DB.layers.length} global layering combos`;
+
+  const insp={};DB.col.forEach(f=>{const k=f.inspiration.split(' + ')[0].split(' /')[0].trim();if(k!=='Original')insp[k]=(insp[k]||0)+1;});
+  const iS=Object.entries(insp).sort((a,b)=>b[1]-a[1]).slice(0,8);const mI=iS[0]?.[1]||1;
+  document.getElementById('ch-insp').innerHTML=iS.map(([k,n])=>`<div class="br"><div class="blbl" title="${k}">${k}</div><div class="btrack"><div class="bfill" style="width:${(n/mI*100).toFixed(1)}%"></div></div><div class="bnum">${n}</div></div>`).join('');
+}
+
+// ============================================================
+// ROTATION
+// ============================================================
+function renderRotation(){
+  const now=new Date();
+  const items=DB.col.map(f=>{const st=gst(f.name);const ws=st.wears||[];const last=ws.length?new Date(ws[ws.length-1]):null;const days=last?Math.floor((now-last)/86400000):9999;return{f,days,last};}).sort((a,b)=>b.days-a.days);
+  document.getElementById('rot-list').innerHTML=items.map((it,i)=>{
+    const{f,days,last}=it;
+    const cls=days===9999?'n':days>30?'s':days>14?'w':'f';
+    const label=days===9999?'—':days+'d';
+    const ls=last?last.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Never worn';
+    return`<div class="ritem" onclick="openModal('${esc(f.name)}')"><div class="rrank">${i+1}</div><div style="flex:1"><div class="rname">${f.name}</div><div class="rmeta">${f.house} · ${season(f.s_key)}</div></div><div style="text-align:right"><span class="rdays ${cls}">${label}</span><div style="font-size:8.5px;color:var(--dove);">${ls}</div></div></div>`;
+  }).join('');
+}
+
+// ============================================================
+// STARRED
+// ============================================================
+function renderStarred(){
+  const list=DB.col.filter(f=>gst(f.name).starred||f.starred);
+  document.getElementById('starred-ct').textContent=list.length+' bottle'+(list.length!==1?'s':'');
+  const g=document.getElementById('starred-grid');
+  if(!list.length){g.innerHTML='<div class="empty-st"><em>None starred yet</em>Open any bottle and tap ☆ Star</div>';return;}
+  g.innerHTML=list.map(f=>`<div class="card ${f.s_key} starred" onclick="openModal('${esc(f.name)}')"><span class="card-star">★</span><div class="card-house">${f.house}</div><div class="card-name">${f.name}</div><div class="card-insp">${f.inspiration}</div><div class="card-tags"><span class="tag ${OCC_CLS[f.occ_key]}">${OCC_LBL[f.occ_key]}</span><span class="tag tsea">${season(f.s_key)}</span></div></div>`).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadDB();populateHouses();populateSugSelect();renderSprayDots();renderGrid();updateStats();
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDetDirect();['add-overlay','conf-overlay'].forEach(id=>document.getElementById(id).classList.add('hidden'));}});
+</script>
+
+</body>
+</html>
