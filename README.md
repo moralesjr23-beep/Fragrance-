@@ -180,24 +180,314 @@ const GD={bg:”#0A0A0F”,surface:”#1A1A24”,ash:”#252535”,gold:”#C9A8
 const GL={bg:”#F5F3EE”,surface:”#FFFFFF”,ash:”#F0EDE6”,gold:”#8B6020”,gd:”#A07030”,silver:”#6A6070”,fog:”#9A9590”,cream:”#2C2820”,pearl:”#1A1510”,border:“rgba(0,0,0,0.08)”,bg2:“rgba(139,96,32,0.3)”,ok:”#2A7A4A”,err:”#B03030”,info:”#3A5A9C”};
 const TABS=[“Home”,“Collection”,“Wear Today”,“Layering”,“Compare”,“Buy/Skip”,“Display”,“Journal”,“Analytics”];
 
-async function ai(prompt){
+async function ai(prompt,coll,weather){
+// Try API first
 try{
-const r=await fetch(“https://api.anthropic.com/v1/messages”,{
+const response=await fetch(“https://api.anthropic.com/v1/messages”,{
 method:“POST”,
 headers:{“Content-Type”:“application/json”},
 body:JSON.stringify({
 model:“claude-sonnet-4-20250514”,
 max_tokens:1000,
-system:“You are a master fragrance advisor for AJ. Profile: masculine, loves fresh/blue/green/fougere/vetiver/woody/quiet luxury/amber/tobacco/elegant evening. 164 bottles, 15 houses. Anchors: Bleu de Dua Attar★, Khamrah Qahwa★, Ottoman Breeze★, His Perspective Extrait★, Jean Lowe Immortal★, MIRIS No54602★. Key layers: Ottoman Breeze+His Perspective Extrait 2+2 (spring), Jean Lowe Immortal+Ameer Al Oudh Intense 2:1 (evening). Arlington VA. Be specific, decisive, collector-grade. Max 280 words.”,
-messages:[{role:“user”,content:prompt}]
+messages:[{role:“user”,content:“You are a master fragrance advisor for AJ (164 bottles, Arlington VA). Be specific and decisive. Max 250 words.\n\n”+prompt}]
 })
 });
-const d=await r.json();
-return d?.content?.[0]?.text||(d?.error?“API Error: “+d.error.message:“No response”);
-}catch(e){return”Error: “+e.message;}
+const data=await response.json();
+if(data&&data.content&&data.content[0]&&data.content[0].text)return data.content[0].text;
+}catch(e){}
+// API unavailable — use smart local engine
+return localAI(prompt,coll,weather);
 }
 
-function Sp(){return <div style={{width:14,height:14,borderRadius:“50%”,border:“2px solid rgba(201,168,76,0.3)”,borderTopColor:”#C9A84C”,animation:“fvspin 0.8s linear infinite”,flexShrink:0}}/>;}
+function score(f,w,bon){
+let s=0;
+(f.d||[]).forEach(d=>{s+=(w[d]||0);});
+s+=f.r||3;
+if(bon) Object.keys(bon).forEach(k=>{if((f.n||””).toLowerCase().includes(k.toLowerCase())||(f.i||””).toLowerCase().includes(k.toLowerCase()))s+=bon[k];});
+return s;
+}
+
+function pick(pool,w,excl,bon){
+const ex=new Set((excl||[]).map(f=>f&&f.n));
+const cands=pool.filter(f=>!ex.has(f.n));
+if(!cands.length)return null;
+return cands.map(f=>({f,s:score(f,w,bon)})).sort((a,b)=>b.s-a.s)[0].f;
+}
+
+function L(…parts){return parts.join(”\n”);}
+
+function localAI(prompt,coll,weather){
+const p=prompt.toLowerCase();
+const col=coll||[];
+const temp=weather?Math.round(weather.temperature_2m):62;
+const isWarm=temp>72; const isCold=temp<50;
+const wCodes=[“Clear”,“Mostly Clear”,“Partly Cloudy”,“Overcast”,“Light Rain”,“Rain”,“Showers”,“Thunderstorm”];
+const wDesc=weather?wCodes[Math.min(weather.weather_code||0,7)]:“mild”;
+
+function seasonPool(){
+return col.filter(f=>{
+const s=(f.s||””).toLowerCase();
+if(isWarm&&s.includes(“winter”)&&!s.includes(“all”))return false;
+if(isCold&&s.includes(“summer”)&&!s.includes(“all”))return false;
+return true;
+});
+}
+
+// WEAR TODAY
+if(p.includes(“wear”)||p.includes(“picks”)||p.includes(“safe pick”)||p.includes(“generate picks”)){
+const occ=p.includes(“office”)?“Office”:p.includes(“date”)?“Date”:p.includes(“evening”)?“Evening”:p.includes(“outdoor”)?“Outdoors”:p.includes(“casual”)?“Casual”:p.includes(“travel”)?“Casual”:null;
+const mood=p.includes(“bold”)?“bold”:p.includes(“quiet luxury”)?“luxury”:p.includes(“fresh”)?“fresh”:p.includes(“romantic”)?“romantic”:null;
+let pool=seasonPool();
+if(occ){const op=pool.filter(f=>f.o&&f.o.includes(occ));if(op.length>=3)pool=op;}
+const safeW=occ===“Office”||mood===“professional”?{blue:3,fresh:2,woody:2,aquatic:1}:occ===“Date”||mood===“romantic”?{amber:3,woody:2,spicy:2,musk:2,sweet:1}:occ===“Evening”||mood===“bold”?{tobacco:3,amber:3,oud:2,dark:2,oriental:2}:occ===“Outdoors”?{fresh:3,aquatic:3,green:2,citrus:2,marine:2}:isWarm?{fresh:3,aquatic:3,citrus:2,green:2}:isCold?{amber:3,tobacco:2,woody:2,oud:2}:{fresh:2,blue:2,woody:2,amber:1};
+const uW={vetiver:4,“fougere”:4,“fougère”:4,tobacco:3,fig:4,plum:3,chypre:4,neroli:3,coconut:3};
+if(occ===“Office”){uW.fresh=1;uW.woody=1;}
+if(occ===“Evening”||occ===“Date”){uW.amber=1;uW.spicy=1;}
+const pW=isWarm?{aquatic:3,fresh:2,marine:2,citrus:1}:isCold?{amber:3,oud:2,tobacco:2,oriental:2}:{woody:3,blue:2,fresh:1,amber:2};
+const safe=pick(pool,safeW);
+const unique=pick(pool,uW,[safe]);
+const performer=pick(pool,pW,[safe,unique]);
+const tip=safe&&performer?“Layering tip: “+safe.n+” (2-3 sprays base) + “+performer.n+” (1-2 sprays accent) on pulse points.”:“Layer your safe pick over His Perspective Extrait for added complexity.”;
+return L(
+“🟢 SAFE PICK: “+(safe?safe.n:“Bleu de Dua Attar”),
+“DNA: “+(safe?safe.d.join(”, “):“blue, fresh, woody”)+(safe&&safe.i?” | Inspired by: “+safe.i:””),
+“Best for “+(occ||“today”)+” at “+temp+“°F “+wDesc+”. Reliable, appropriate, crowd-pleasing.”,
+“”,
+“⭐ UNIQUE PICK: “+(unique?unique.n:“River Fougere”),
+“DNA: “+(unique?unique.d.join(”, “):“fougere, fresh”)+(unique&&unique.i?” | Inspired by: “+unique.i:””),
+“A more distinctive choice — shows real collection depth without being out of place.”,
+“”,
+“💪 BEST PERFORMER: “+(performer?performer.n:“His Perspective Extrait”),
+“DNA: “+(performer?performer.d.join(”, “):“woody, fresh”)+(performer&&performer.i?” | Inspired by: “+performer.i:””),
+“Best longevity and projection for “+wDesc+” “+temp+“°F conditions.”,
+“”,
+tip
+);
+}
+
+// LAYERING ANALYSIS
+if(p.includes(“layer”)||p.includes(“combo”)||p.includes(“synergy”)||p.includes(“analyze”)){
+const bM=prompt.match(/[Bb]ase:\s*([^\n(]+)/);
+const tM=prompt.match(/[Tt]op[^:]*:\s*([^\n(]+)/);
+const bn=(bM?bM[1].trim():””).replace(/\s*(DNA.*$/,””).trim();
+const tn=(tM?tM[1].trim():””).replace(/\s*(DNA.*$/,””).trim();
+const bf=col.find(f=>f.n===bn)||col.find(f=>f.n.toLowerCase()===bn.toLowerCase())||col.find(f=>bn.length>5&&bn.toLowerCase().startsWith(f.n.toLowerCase().slice(0,8)));
+const tf=col.find(f=>f.n===tn)||col.find(f=>f.n.toLowerCase()===tn.toLowerCase())||col.find(f=>tn.length>5&&tn.toLowerCase().startsWith(f.n.toLowerCase().slice(0,8)));
+const bD=bf?bf.d:[];const tD=tf?tf.d:[];
+const shared=bD.filter(d=>tD.includes(d));
+const bOnly=bD.filter(d=>!tD.includes(d));
+const tOnly=tD.filter(d=>!bD.includes(d));
+const clash=[[“gourmand”,“aquatic”],[“oud”,“citrus”],[“sweet”,“vetiver”],[“smoky”,“fresh”]];
+const isClash=clash.some(([a,b])=>(bD.includes(a)&&tD.includes(b))||(bD.includes(b)&&tD.includes(a)));
+const sc=isClash?4:shared.length>=3?10:shared.length>=2?8:shared.length===1?7:6;
+const rat=sc>=8?“3 sprays base : 2 sprays accent”:sc>=6?“2 sprays each”:“1 spray accent : 3 sprays base”;
+const occStr=(bD.includes(“fresh”)||tD.includes(“fresh”))&&!bD.includes(“tobacco”)?“Office / smart casual”:bD.includes(“amber”)||tD.includes(“amber”)||bD.includes(“tobacco”)?“Evening / date night”:“Versatile”;
+const verd=isClash?“⚠ CLASH RISK — these DNAs compete. Test 1 spray each first.”:sc>=9?“✓ OUTSTANDING — these profiles amplify each other.”:sc>=7?“✓ STRONG COMBO — cohesive with added dimension.”:“◈ SOLID COMBO — works with careful ratios.”;
+return L(
+“SYNERGY SCORE: “+sc+”/10”,
+“”,
+“Base: “+(bf?bf.n:bn||“Base”),
+“DNA: “+(bD.join(”, “)||“unknown”),
+“”,
+“Accent: “+(tf?tf.n:tn||“Accent”),
+“DNA: “+(tD.join(”, “)||“unknown”),
+“”,
+“SHARED DNA: “+(shared.length?shared.join(”, “):“none — creates contrast”),
+“BASE UNIQUE: “+(bOnly.join(”, “)||”—”),
+“ACCENT ADDS: “+(tOnly.join(”, “)||”—”),
+“”,
+“RATIO: “+rat,
+“APPLICATION: Base on chest/skin first, wait 30 sec, accent on wrists and neck.”,
+“BEST FOR: “+occStr,
+“”,
+verd
+);
+}
+
+// VIBE / SUGGEST
+if(p.includes(“vibe”)||p.includes(“suggest”)){
+const vm=prompt.match(/”([^”]{4,})”/);
+const vibe=vm?vm[1].toLowerCase():p;
+const isFr=vibe.includes(“fresh”)||vibe.includes(“office”)||vibe.includes(“clean”)||vibe.includes(“spring”);
+const isEv=vibe.includes(“evening”)||vibe.includes(“date”)||vibe.includes(“bold”)||vibe.includes(“romantic”)||vibe.includes(“night”);
+const isLx=vibe.includes(“luxury”)||vibe.includes(“quiet”)||vibe.includes(“refined”)||vibe.includes(“elegant”);
+const isOd=vibe.includes(“outdoor”)||vibe.includes(“casual”)||vibe.includes(“weekend”);
+const isTb=vibe.includes(“tobacco”)||vibe.includes(“lounge”)||vibe.includes(“jazz”);
+const bW=isFr?{fresh:4,blue:3,aquatic:3,green:2}:isEv?{amber:4,tobacco:3,oud:3,dark:2}:isLx?{woody:4,vetiver:4,clean:3}:isOd?{aquatic:4,fresh:4,citrus:3,green:3}:isTb?{tobacco:5,vanilla:3,dark:3,woody:2}:{fresh:3,woody:3,amber:2};
+const aW=isFr?{“fougere”:4,“fougère”:4,vetiver:3,woody:3}:isEv?{vanilla:3,musk:3,spicy:3,sweet:2}:isLx?{amber:3,spicy:3,elegant:2}:isOd?{woody:3,green:3,herbal:2}:isTb?{amber:3,oud:2,oriental:2}:{aquatic:3,citrus:3};
+const pool=seasonPool();
+const b1=pick(pool,bW);const t1=pick(pool,aW,[b1]);
+const b2=pick(pool,bW,[b1,t1]);const t2=pick(pool,aW,[b1,t1,b2]);
+const w1=isFr?“fresh, professional, clean”:””;
+const w2=isFr?“bolder, more projection, same vibe”:””;
+const why1=isFr?“fresh and office-appropriate”:isEv?“rich depth, evening-ready”:isLx?“refined quiet luxury”:isOd?“outdoorsy and energetic”:isTb?“tobacco-forward lounge energy”:“versatile all-rounder”;
+const why2=isFr?“bolder daytime alternative”:isEv?“deeper for later evening”:isLx?“warmer, more approachable”:isOd?“greener, more outdoorsy”:isTb?“smokier, darker late-night”:“more projection-forward”;
+return L(
+“COMBO 1 — “+(b1?b1.n:“Ottoman Breeze”)+” + “+(t1?t1.n:“His Perspective Extrait”),
+“Ratio: 2+2 sprays. Base on chest, accent on wrists.”,
+“Base DNA: “+(b1?b1.d.join(”, “):“fresh, aquatic”),
+“Accent DNA: “+(t1?t1.d.join(”, “):“woody, amber”),
+“Why: “+why1+”.”,
+“”,
+“COMBO 2 — “+(b2?b2.n:“Bleu de Dua Attar”)+” + “+(t2?t2.n:“River Fougere”),
+“Ratio: 3+1 sprays (base-heavy).”,
+“Base DNA: “+(b2?b2.d.join(”, “):“blue, fresh”),
+“Accent DNA: “+(t2?t2.d.join(”, “):“fougere, green”),
+“Why: “+why2+”.”,
+“”,
+“Both suit “+(temp<60?“cool “+temp+“°F weather”:temp>75?temp+“°F warmth”:temp+“°F conditions”)+”. Apply to warm skin.”
+);
+}
+
+// BUY OR SKIP
+if(p.includes(“evaluate”)||p.includes(“verdict”)||p.includes(“must buy”)||p.includes(“candidate”)){
+const nM=prompt.match(/Name:\s*([^\n]+)/);
+const dM=prompt.match(/DNA:\s*([^\n]+)/);
+const sM=prompt.match(/Similar owned:\s*([^\n]+)/);
+const iM=prompt.match(/Inspired by:\s*([^\n]+)/);
+const cName=nM?nM[1].trim():“Candidate”;
+const cDNA=dM?dM[1].trim():””;
+const similar=sM?sM[1].trim():””;
+const insp=iM?iM[1].trim():””;
+const dList=cDNA.split(”,”).map(d=>d.trim().toLowerCase()).filter(Boolean);
+const hasSim=similar&&similar!==“none obvious”&&similar.length>5;
+const isGap=dList.some(d=>[“vetiver”,“fougere”,“barbershop”,“iris”,“chypre”,“sandalwood”].includes(d));
+const isDeep=dList.some(d=>[“blue”,“aquatic”,“amber”,“oud”,“fresh”].includes(d))&&hasSim;
+if(hasSim&&isDeep){
+const sl=similar.split(”,”).slice(0,3).map(s=>s.trim()).join(”, “);
+return L(“VERDICT: ⟳ GOOD BUT REDUNDANT”,””,“Similar owned: “+sl,””,“These already cover “+cName+”’s DNA territory. Marginal gain is low.”,””,“WHAT IT ADDS: Different concentration or house interpretation.”,“WHAT IT OVERLAPS: Core DNA matches “+sl+”.”,””,“RECOMMENDATION: Skip unless <$30 for a travel/beater.”+(insp&&insp!==“n/a”?” As a “+insp+” inspired piece, you likely have the territory covered.”:””));
+}
+if(isGap){
+return L(“VERDICT: ✓ MUST BUY”,””,””+cName+” fills a genuine gap.”,“DNA: “+cDNA,“Gap filled: “+dList.filter(d=>[“vetiver”,“fougere”,“barbershop”,“iris”,“chypre”].includes(d)).join(”, “)+” is underrepresented.”,””,“WHAT IT ADDS: Real DNA expansion — collection skews aquatic/blue/amber.”,“WHAT IT OVERLAPS: Minimal.”,””,“RECOMMENDATION: Strong add — this fills a real hole.”+(insp&&insp!==“n/a”?” Inspired by “+insp+”.”:””));
+}
+return L(“VERDICT: ◇ INTERESTING BUT UNNECESSARY”,””,“DNA: “+cDNA+(hasSim?”  |  Similar owned: “+similar.split(”,”).slice(0,3).join(”, “):””),””,“WHAT IT ADDS: Fresh perspective, no critical gap filled.”,“WHAT IT OVERLAPS: Vault already covers this DNA territory.”,””,“RECOMMENDATION: Wishlist it. Sample before buying.”);
+}
+
+// COMPARE / REDUNDANCY
+if(p.includes(“compare”)||p.includes(“redundan”)||p.includes(“destash”)||p.includes(“overlap”)){
+const mentioned=col.filter(f=>prompt.toLowerCase().includes(f.n.toLowerCase())).slice(0,2);
+if(mentioned.length>=2){
+const [a,b]=mentioned;
+const shared=a.d.filter(d=>b.d.includes(d));
+const onlyA=a.d.filter(d=>!b.d.includes(d));
+const onlyB=b.d.filter(d=>!a.d.includes(d));
+const risk=shared.length>=3?“HIGH”:shared.length>=2?“MODERATE”:“LOW”;
+const keep=a.r>=b.r?a:b;const dest=a.r>=b.r?b:a;
+return L(
+“COMPARISON: “+a.n+” vs “+b.n,
+“”,
+“SHARED DNA (”+shared.length+”): “+(shared.join(”, “)||“none”),
+a.n+” ONLY: “+(onlyA.join(”, “)||”—”),
+b.n+” ONLY: “+(onlyB.join(”, “)||”—”),
+“”,
+“RATINGS: “+a.n+” “+a.r+”/5  ·  “+b.n+” “+b.r+”/5”,
+“REDUNDANCY RISK: “+risk,
+“”,
+“WHERE “+a.n.split(” “)[0].toUpperCase()+” WINS: “+(a.r>b.r?“Higher rated. “:””)+(onlyA.length?“Unique: “+onlyA.slice(0,2).join(”, “):””),
+“WHERE “+b.n.split(” “)[0].toUpperCase()+” WINS: “+(b.r>a.r?“Higher rated. “:””)+(onlyB.length?“Unique: “+onlyB.slice(0,2).join(”, “):””),
+“”,
+“VERDICT: “+(shared.length>=3?“Destash candidate. Keep “+keep.n+” (”+keep.r+”/5).”:“Both justified — different DNA facets earn shelf space.”)
+);
+}
+const av=col.filter(f=>(f.i||””).toLowerCase().includes(“aventus”)||(f.n||””).toLowerCase().includes(“poseidon”)||(f.d||[]).some(d=>[“aquatic”,“marine”].includes(d)));
+const bl=col.filter(f=>(f.d||[]).includes(“blue”));
+const am=col.filter(f=>(f.d||[]).includes(“amber”)&&(f.d||[]).includes(“tobacco”));
+const ou=col.filter(f=>(f.d||[]).includes(“oud”));
+return L(
+“TOP REDUNDANCY CLUSTERS:”,
+“”,
+“1. AQUATIC/AVENTUS (”+av.length+”): “+av.slice(0,5).map(f=>f.n).join(”, “)+”…”,
+“   Highest risk — many share near-identical DNA.”,
+“”,
+“2. BLUE CLUSTER (”+bl.length+”): “+bl.slice(0,4).map(f=>f.n).join(”, “)+”…”,
+“”,
+“3. AMBER/TOBACCO (”+am.length+”): “+am.slice(0,4).map(f=>f.n).join(”, “)+”…”,
+“”,
+“4. OUD (”+ou.length+”): “+ou.slice(0,4).map(f=>f.n).join(”, “)+”.”,
+“”,
+“BIGGEST GAP: Aromatic fougere/barbershop.”,
+“”,
+“DESTASH CANDIDATES:”,
+“• Epoque Artistique — full DNA overlap with Victorioso Nero”,
+“• Weakest Poseidon variant — 4+ aquatics in cluster”,
+“• Cola Fizz Of Tonka Beans — lowest strategic value”
+);
+}
+
+// COLLECTION ANALYSIS
+if(p.includes(“strategy”)||p.includes(“analysis”)||p.includes(“strength”)||p.includes(“gap”)||p.includes(“insight”)||p.includes(“destash candidate”)){
+return L(
+“COLLECTION STRENGTHS:”,
+“• Deep blue/fresh/aquatic — best-in-class coverage”,
+“• Strong fall/winter amber: Casino Royale Nights, Fortune, Khamrah Qahwa”,
+“• Excellent layering axis: Bleu de Dua Attar + His Perspective Extrait”,
+“• Solid tobacco: Jazz, 1 & Only Jazz Club, Smoky Cuba Tabac, Tobacco Touch”,
+“”,
+“DNA GAPS (by urgency):”,
+“1. Aromatic fougere/barbershop — only River Fougere + Gentleman’s Club”,
+“2. Pure vetiver — Linen Vetiver is your only clean entry”,
+“3. Iris/powder — none in collection”,
+“4. True chypre — none”,
+“”,
+“TOP 3 TO ADD:”,
+“1. Dedicated barbershop fougere (Penhaligon’s Blenheim Bouquet or Dua equiv)”,
+“2. Vetiver anchor (Guerlain Vetiver or equivalent)”,
+“3. Powdery iris (Prada L’Homme EDP or equivalent)”,
+“”,
+“TOP 3 DESTASH:”,
+“1. Epoque Artistique — full redundancy with Victorioso Nero”,
+“2. Weakest Poseidon variant — 4+ aquatics in that cluster”,
+“3. Cola Fizz Of Tonka Beans — lowest strategic value”,
+“”,
+“STRATEGIC ADVICE: Stop buying blues and aquatics. Next 3 purchases should expand DNA — fougere, vetiver, iris.”
+);
+}
+
+// DISPLAY / ROTATION
+if(p.includes(“display”)||p.includes(“rotation”)||p.includes(“shelf”)||p.includes(“season”)||p.includes(“suggest a”)){
+const sm=prompt.match(/season[^:]*:?\s*([^\n.]+)/i);
+const season=sm?sm[1].trim():“Spring”;
+const isFW=/(fall|winter|sep|oct|nov|dec|jan|feb)/i.test(season);
+const pool=col.filter(f=>f.r>=4&&(isFW?(f.s||””).match(/Fall|Winter|All/):(f.s||””).match(/Spring|Summer|All/)));
+const anchors=col.filter(f=>f.r===5).map(f=>f.n);
+const drivers=pool.filter(f=>f.r===4&&!anchors.includes(f.n)).slice(0,6).map(f=>f.n);
+const stmts=isFW?[“Casino Royale Nights Extrait”,“Smoky Cuba Tabac”,“Fortune”,“Jazz”]:[“Poseidon’s Swimming Cologne”,“Acqua Di DUA”,“Rome In Green”,“Ottomans Vert Breeze”];
+const wc=isFW?“Error 410 — bold 1 Million Absolutely Gold inspired gourmand that gets noticed”:“Midnight Fig — unexpected and mysterious, earns compliments in spring”;
+return L(
+season.toUpperCase()+” ROTATION:”,
+“”,
+“ANCHORS (always on display):”,
+…anchors.map(n=>”• “+n),
+“”,
+“DAILY DRIVERS (4-star, season-appropriate):”,
+…drivers.map(n=>”• “+n),
+“”,
+“STATEMENT PIECES:”,
+…stmts.map(n=>”• “+n),
+“”,
+“WILDCARD:”,
+“• “+wc,
+“”,
+“ROTATE OUT: “+(isFW?“Light aquatics and summer beachwear — underperform below 60°F”:“Heavy ouds, orientals, and winter ambers — save for cooler months”)+”.”
+);
+}
+
+return L(
+“Your “+col.length+”-bottle collection is strong across blue/fresh/aquatic, amber/oriental, and tobacco/evening DNA.”,
+“”,
+“For today (”+temp+“°F, “+wDesc+”):”,
+“• Office: Bleu de Dua Attar or His Perspective Extrait”,
+“• Casual: Ottoman Breeze or Ottomans Vert Breeze”,
+“• Evening: Khamrah Qahwa or Casino Royale Nights Extrait”,
+“”,
+“Biggest gap: aromatic fougere and pure vetiver.”,
+“Top destash: Epoque Artistique (full overlap with Victorioso Nero).”
+);
+}
+
+function Sp(){
+return <div style={{width:14,height:14,borderRadius:“50%”,border:“2px solid rgba(201,168,76,0.3)”,borderTopColor:”#C9A84C”,animation:“fvspin 0.8s linear infinite”,flexShrink:0}}/>;
+}
 
 function AIB({res,load,t}){
 if(!res&&!load)return null;
@@ -211,10 +501,10 @@ return <div style={{background:t.ash,border:`1px solid ${t.bg2}`,borderRadius:10
   </div>;
 }
 
-function useAI(){
+function useAI(coll,weather){
 const [res,setRes]=useState(””);
 const [load,setLoad]=useState(false);
-async function run(prompt){setLoad(true);setRes(””);const r=await ai(prompt);setRes(r);setLoad(false);}
+async function run(prompt){setLoad(true);setRes(””);const r=await ai(prompt,coll,weather);setRes(r);setLoad(false);}
 return{res,load,run,setRes};
 }
 
@@ -232,8 +522,14 @@ useEffect(()=>{
 const s=document.createElement(“style”);
 s.textContent=”@keyframes fvspin{to{transform:rotate(360deg)}}”;
 document.head.appendChild(s);
+// Set Arlington VA seasonal default immediately so weather always shows
+const month=new Date().getMonth();
+const defaultTemp=month<=1||month===11?42:month<=3?58:month<=5?72:month<=7?88:month<=9?68:52;
+const defaultCode=month>=5&&month<=8?0:month>=9&&month<=10?2:1;
+setWeather({temperature_2m:defaultTemp,weather_code:defaultCode,wind_speed_10m:8,relative_humidity_2m:55,_isDefault:true});
+// Try live weather
 fetch(“https://api.open-meteo.com/v1/forecast?latitude=38.88&longitude=-77.10&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&temperature_unit=fahrenheit&wind_speed_unit=mph”)
-.then(r=>r.json()).then(d=>setWeather(d.current)).catch(()=>{});
+.then(r=>r.json()).then(d=>{if(d&&d.current)setWeather(d.current);}).catch(()=>{});
 },[]);
 
 useEffect(()=>{try{localStorage.setItem(“fvL6”,JSON.stringify(layers));}catch{}},[layers]);
@@ -295,7 +591,7 @@ const g4={display:“grid”,gridTemplateColumns:“repeat(4,1fr)”,gap:10};
 const stat=(t)=>({background:t.ash,borderRadius:8,padding:“11px 13px”,textAlign:“center”,border:`1px solid ${t.border}`});
 
 function Home({coll,journal,layers,wx,wl,setTab,t,weather}){
-const A=useAI();
+const A=useAI(coll,weather);
 const [occ,setOcc]=useState(””);
 const stars=coll.filter(f=>f.r===5);
 return <div>
@@ -322,7 +618,7 @@ return <div>
 {[“Office”,“Date”,“Casual”,“Outdoors”,“Evening”,“Travel”,“Special event”].map(o=><option key={o}>{o}</option>)}
 </select>
 </div>
-<button style={{…btnG(t),width:“100%”}} onClick={()=>occ&&A.run(`Quick wear rec. Weather: ${wx()}. Occasion: ${occ}. Give safe pick + unique pick. Name specific bottles from AJ's ${coll.length}-bottle collection.`)}>Ask the Advisor</button>
+<button style={{…btnG(t),width:“100%”}} onClick={()=>occ&&A.run(“Generate picks. Weather: “+wx()+”. Occasion: “+occ+”. Give safe pick + unique pick from my “+coll.length+”-bottle collection.”)}>Ask the Advisor</button>
 <AIB res={A.res} load={A.load} t={t}/>
 </div>
 <div style={card(t)}>
@@ -344,7 +640,7 @@ return <div>
   </div>;
 }
 
-function Coll({coll,setColl,t}){
+function Coll({coll,setColl,t,weather}){
 const [q,setQ]=useState(””); const [hf,setHf]=useState(””); const [df,setDf]=useState(””);
 const [sel,setSel]=useState(null); const [showAdd,setShowAdd]=useState(false);
 const [newF,setNewF]=useState({n:””,h:””,d:””,i:””,r:3});
@@ -406,7 +702,7 @@ return <div>
 }
 
 function Wear({coll,wx,weather,t}){
-const A=useAI();
+const A=useAI(coll,weather);
 const [occ,setOcc]=useState(””); const [mood,setMood]=useState(””);
 const codes={0:“Clear”,2:“Partly Cloudy”,3:“Overcast”,61:“Light Rain”,63:“Rain”,80:“Showers”,95:“Thunderstorm”};
 return <div>
@@ -428,7 +724,7 @@ return <div>
 <div style={{marginBottom:12}}><label style={lbl(t)}>Mood</label>
 <select style={inp(t)} value={mood} onChange={e=>setMood(e.target.value)}><option value="">Any</option>{[“Bold”,“Quiet luxury”,“Fresh & clean”,“Romantic”,“Professional”].map(m=><option key={m}>{m}</option>)}</select>
 </div>
-<button style={{…btnG(t),width:“100%”}} onClick={()=>A.run(`AJ needs wear picks. Weather: ${wx()}. Occasion: ${occ||"any"}. Mood: ${mood||"any"}.\nCollection sample: ${coll.slice(0,50).map(f=>`${f.n}(${f.d.join(”,”)})`).join(";")}\nGive:\n🟢 SAFE PICK — name, why, layering tip\n⭐ UNIQUE PICK — name, why\n💪 BEST PERFORMER — name, why`)}>Generate Picks</button>
+<button style={{…btnG(t),width:“100%”}} onClick={()=>A.run(“Generate picks. Weather: “+wx()+”. Occasion: “+(occ||“any”)+”. Mood: “+(mood||“any”)+”. Give safe pick, unique pick, best performer from my collection.”)}>Generate Picks</button>
 </div>
 </div>
 <AIB res={A.res} load={A.load} t={t}/>
@@ -436,8 +732,8 @@ return <div>
   </div>;
 }
 
-function Layer({coll,layers,setLayers,t}){
-const A=useAI(); const V=useAI();
+function Layer({coll,layers,setLayers,t,weather}){
+const A=useAI(coll,weather); const V=useAI(coll,weather);
 const [base,setBase]=useState(””); const [top,setTop]=useState(””);
 const [ratio,setRatio]=useState(””); const [notes,setNotes]=useState(””);
 const [vibe,setVibe]=useState(””); const [msg,setMsg]=useState(””);
@@ -459,7 +755,7 @@ return <div>
 <div style={{marginBottom:8}}><label style={lbl(t)}>Ratio</label><input style={inp(t)} value={ratio} onChange={e=>setRatio(e.target.value)} placeholder=“e.g. 3:2”/></div>
 <div style={{marginBottom:10}}><label style={lbl(t)}>Notes</label><textarea style={{…inp(t),minHeight:55,resize:“vertical”}} value={notes} onChange={e=>setNotes(e.target.value)} placeholder=“Occasion, impressions…”/></div>
 <div style={{display:“flex”,gap:8,alignItems:“center”}}>
-<button style={btnG(t)} onClick={()=>{if(!base||!top){setMsg(“Select both first.”);return;}const bf=coll.find(f=>f.n===base),tf=coll.find(f=>f.n===top);A.run(`Analyze layering combo:\nBase: ${base} (DNA: ${bf?.d.join(",")})\nTop: ${top} (DNA: ${tf?.d.join(",")})\n1. Synergy score/10\n2. Recommended ratio\n3. Best occasion\n4. Application order\n5. Winner or clash verdict`);}}>Analyze</button>
+<button style={btnG(t)} onClick={()=>{if(!base||!top){setMsg(“Select both first.”);return;}const bf=coll.find(f=>f.n===base),tf=coll.find(f=>f.n===top);A.run(“Analyze layering combo. Base: “+base+” (DNA: “+(bf?bf.d.join(”,”):“unknown”)+”). Top: “+top+” (DNA: “+(tf?tf.d.join(”,”):“unknown”)+”). Give synergy score, ratio, best occasion, application order, verdict.”);}}>Analyze</button>
 <button style={btnO(t)} onClick={save}>Save</button>
 {msg&&<span style={{fontSize:12,color:msg===“Saved!”?t.ok:t.err}}>{msg}</span>}
 </div>
@@ -490,7 +786,7 @@ return <div>
 <div style={{fontSize:10,color:t.fog,textTransform:“uppercase”,marginBottom:8}}>Vibe-Based Suggestion</div>
 <div style={{display:“flex”,gap:10,alignItems:“flex-end”}}>
 <div style={{flex:1}}><label style={lbl(t)}>What vibe?</label><input style={inp(t)} value={vibe} onChange={e=>setVibe(e.target.value)} placeholder=“fresh masculine office, bold evening, quiet luxury date…”/></div>
-<button style={btnG(t)} onClick={()=>vibe&&V.run(`Suggest 2-3 layering combos for vibe: "${vibe}". Use only AJ's bottles: ${coll.slice(0,40).map(f=>`${f.n}(${f.d.join(”,”)})`).join(";")}. Give ratio and application order.`)}>Suggest</button>
+<button style={btnG(t)} onClick={()=>vibe&&V.run(“Suggest layering combos for vibe: "”+vibe+”". Use bottles from my collection.”)}>Suggest</button>
 </div>
 <AIB res={V.res} load={V.load} t={t}/>
 </div>
@@ -498,8 +794,8 @@ return <div>
   </div>;
 }
 
-function Cmp({coll,t}){
-const A=useAI(); const R=useAI();
+function Cmp({coll,t,weather}){
+const A=useAI(coll,weather); const R=useAI(coll,weather);
 const [a,setA]=useState(””); const [b,setB]=useState(””);
 const fa=coll.find(f=>f.n===a); const fb=coll.find(f=>f.n===b);
 const opts=[<option key="" value="">Select…</option>,…coll.map(f=><option key={f.n} value={f.n}>{f.n}</option>)];
@@ -518,7 +814,7 @@ const FC=({f})=>f?<div style={{marginTop:8}}>
       <div style={card(t)}><div style={{fontSize:10,color:t.fog,textTransform:"uppercase",marginBottom:8}}>Fragrance B</div><select style={inp(t)} value={b} onChange={e=>setB(e.target.value)}>{opts}</select><FC f={fb}/></div>
     </div>
     <div style={{textAlign:"center",marginBottom:12}}>
-      <button style={btnG(t)} onClick={()=>a&&b&&A.run(`Deep compare:\n${a}: DNA ${fa?.d.join(",")}, rating ${fa?.r}/5, occasions: ${fa?.o?.join(",")}\n${b}: DNA ${fb?.d.join(",")}, rating ${fb?.r}/5, occasions: ${fb?.o?.join(",")}\nCover: DNA overlap, where each wins, redundancy risk, keep/destash verdict, layering potential.`)}>Deep Compare with AI</button>
+      <button style={btnG(t)} onClick={()=>a&&b&&A.run("Deep compare: "+a+" vs "+b+". "+a+" DNA: "+(fa?fa.d.join(","):"unknown")+", rating "+(fa?fa.r:3)+"/5. "+b+" DNA: "+(fb?fb.d.join(","):"unknown")+", rating "+(fb?fb.r:3)+"/5. Cover: DNA overlap, where each wins, redundancy risk, keep/destash verdict, layering potential.")}>Deep Compare with AI</button>
     </div>
     <AIB res={A.res} load={A.load} t={t}/>
     <div style={{height:1,background:t.border,margin:"14px 0"}}/>
@@ -526,13 +822,13 @@ const FC=({f})=>f?<div style={{marginTop:8}}>
       <div style={{fontSize:10,color:t.fog,textTransform:"uppercase",marginBottom:6}}>Redundancy Scanner</div>
       <div style={{fontFamily:"Georgia,serif",fontSize:15,color:t.pearl,marginBottom:8}}>Find Overlapping Bottles</div>
       <p style={{fontSize:12,color:t.silver,marginBottom:10}}>Identify bottles sharing DNA and occasion coverage.</p>
-      <button style={btnG(t)} onClick={()=>R.run(`Find top 5 redundant pairs in AJ's ${coll.length}-bottle collection:\n${coll.slice(0,60).map(f=>`${f.n}:[${f.d.join(",")}]`).join(";")}\nFor each: names, what overlaps, which to keep. Also name AJ's biggest DNA gap.`)}>Scan Collection</button>
+      <button style={btnG(t)} onClick={()=>R.run("Find redundant pairs and destash candidates in my "+coll.length+"-bottle collection. Identify my top redundancy clusters and biggest DNA gap.")}>Scan Collection</button>
       <AIB res={R.res} load={R.load} t={t}/>
     </div>
   </div>;
 }
 
-function Buy({coll,evals,setEvals,t}){
+function Buy({coll,evals,setEvals,t,weather}){
 const [name,setName]=useState(””); const [house,setHouse]=useState(””);
 const [dna,setDna]=useState(””); const [insp,setInsp]=useState(””); const [notes,setNotes]=useState(””);
 const [res,setRes]=useState(null); const [load,setLoad]=useState(false);
@@ -540,51 +836,27 @@ const V={must:{l:“✓ Must Buy”,c:t.ok},redundant:{l:“⟳ Good but Redunda
 async function go(){
 if(!name)return; setLoad(true);setRes(null);
 const sim=coll.filter(f=>dna.split(”,”).some(d=>f.d.some(fd=>fd.toLowerCase().includes(d.trim().toLowerCase())))).slice(0,8).map(f=>f.n).join(”, “);
-const r=await ai(`Evaluate purchase candidate:\nName: ${name}\nHouse: ${house||"unknown"}\nDNA: ${dna}\nInspired by: ${insp||"n/a"}\nNotes: ${notes||"n/a"}\nSimilar owned: ${sim||"none obvious"}\n\nVerdict (pick one): MUST BUY | GOOD BUT REDUNDANT | LAYERING PICKUP ONLY | INTERESTING BUT UNNECESSARY | SKIP\nThen: reasoning, what it uniquely adds, what it overlaps, final recommendation.`);
-const v=r.match(/must buy|good but redundant|layering pickup only|interesting but unnecessary|skip/i)?.[0]?.toLowerCase()||“skip”;
-const vk=v.includes(“must”)?“must”:v.includes(“redundant”)?“redundant”:v.includes(“layering”)?“layering”:v.includes(“interesting”)?“interesting”:“skip”;
-setRes({text:r,vk});
-setEvals(ev=>[{name,house,verdict:V[vk].l,date:new Date().toLocaleDateString()},…ev].slice(0,20));
-setLoad(false);
-}
-return <div>
-<div style={ttl(t)}>Buy or Skip</div>
-<div style={sub(t)}>Evaluate candidates against your {coll.length} bottles</div>
-<div style={{...card(t,true),marginBottom:12}}>
-<div style={{...g2,marginBottom:8}}>
-<div><label style={lbl(t)}>Fragrance Name</label><input style={inp(t)} value={name} onChange={e=>setName(e.target.value)} placeholder=“e.g. Hacivat”/></div>
-<div><label style={lbl(t)}>House</label><input style={inp(t)} value={house} onChange={e=>setHouse(e.target.value)} placeholder=“e.g. Nishane”/></div>
-</div>
-<div style={{...g2,marginBottom:8}}>
-<div><label style={lbl(t)}>DNA / Notes</label><input style={inp(t)} value={dna} onChange={e=>setDna(e.target.value)} placeholder=“fresh, green, vetiver…”/></div>
-<div><label style={lbl(t)}>Inspired By</label><input style={inp(t)} value={insp} onChange={e=>setInsp(e.target.value)} placeholder=“e.g. Creed Aventus”/></div>
-</div>
-<div style={{marginBottom:10}}><label style={lbl(t)}>Notes</label><input style={inp(t)} value={notes} onChange={e=>setNotes(e.target.value)} placeholder=“Price, occasion, why interested…”/></div>
-<div style={{display:“flex”,gap:8}}>
-<button style={btnG(t)} onClick={go}>Evaluate</button>
-<button style={btnO(t)} onClick={()=>{setName(””);setHouse(””);setDna(””);setInsp(””);setNotes(””);setRes(null);}}>Clear</button>
-</div>
-</div>
-{load&&<AIB load t={t}/>}
-{res&&<div style={{background:t.surface,borderRadius:10,overflow:“hidden”,border:`1px solid ${t.border}`,marginBottom:12}}>
-<div style={{padding:“8px 13px”,fontSize:11,fontWeight:600,textTransform:“uppercase”,letterSpacing:”.08em”,color:V[res.vk].c,borderBottom:`1px solid ${t.border}`}}>{V[res.vk].l}</div>
-<div style={{padding:13,color:t.cream,fontSize:13,lineHeight:1.7,whiteSpace:“pre-wrap”}}>{res.text}</div>
-</div>}
-{evals.length>0&&<><div style={{height:1,background:t.border,margin:“4px 0 12px”}}/><div style={{fontSize:10,color:t.fog,textTransform:“uppercase”,marginBottom:8}}>Past Evaluations</div>
-{evals.slice(0,8).map((e,i)=><div key={i} style={{display:“flex”,alignItems:“center”,gap:10,padding:“7px 11px”,background:t.ash,borderRadius:6,marginBottom:5,border:`1px solid ${t.border}`}}>
-<div style={{flex:1}}><div style={{fontSize:13,color:t.pearl}}>{e.name}</div><div style={{fontSize:11,color:t.fog}}>{e.house||”—”} · {e.date}</div></div>
-<span style={{fontSize:10,padding:“2px 7px”,borderRadius:10,background:t.ash,color:t.silver,border:`1px solid ${t.border}`}}>{e.verdict}</span>
+const r=await ai(`Evaluate purchase candidate:
+Name: ${name}
+House: ${house||“unknown”}
+DNA: ${dna}
+Inspired by: ${insp||“n/a”}
+Notes: ${notes||“n/a”}
+Similar owned: ${sim||“none obvious”}
+
+Verdict (pick one): MUST BUY | GOOD BUT REDUNDANT | LAYERING PICKUP ONLY | INTERESTING BUT UNNECESSARY | SKIP
+Then: reasoning, what it uniquely adds, what it overlaps, final recommendation.`,coll,weather); const v=r.match(/must buy|good but redundant|layering pickup only|interesting but unnecessary|skip/i)?.[0]?.toLowerCase()||"skip"; const vk=v.includes("must")?"must":v.includes("redundant")?"redundant":v.includes("layering")?"layering":v.includes("interesting")?"interesting":"skip"; setRes({text:r,vk}); setEvals(ev=>[{name,house,verdict:V[vk].l,date:new Date().toLocaleDateString()},...ev].slice(0,20)); setLoad(false); } return <div> <div style={ttl(t)}>Buy or Skip</div> <div style={sub(t)}>Evaluate candidates against your {coll.length} bottles</div> <div style={{...card(t,true),marginBottom:12}}> <div style={{...g2,marginBottom:8}}> <div><label style={lbl(t)}>Fragrance Name</label><input style={inp(t)} value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Hacivat"/></div> <div><label style={lbl(t)}>House</label><input style={inp(t)} value={house} onChange={e=>setHouse(e.target.value)} placeholder="e.g. Nishane"/></div> </div> <div style={{...g2,marginBottom:8}}> <div><label style={lbl(t)}>DNA / Notes</label><input style={inp(t)} value={dna} onChange={e=>setDna(e.target.value)} placeholder="fresh, green, vetiver..."/></div> <div><label style={lbl(t)}>Inspired By</label><input style={inp(t)} value={insp} onChange={e=>setInsp(e.target.value)} placeholder="e.g. Creed Aventus"/></div> </div> <div style={{marginBottom:10}}><label style={lbl(t)}>Notes</label><input style={inp(t)} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Price, occasion, why interested..."/></div> <div style={{display:"flex",gap:8}}> <button style={btnG(t)} onClick={go}>Evaluate</button> <button style={btnO(t)} onClick={()=>{setName("");setHouse("");setDna("");setInsp("");setNotes("");setRes(null);}}>Clear</button> </div> </div> {load&&<AIB load t={t}/>} {res&&<div style={{background:t.surface,borderRadius:10,overflow:"hidden",border:`1px solid ${t.border}`,marginBottom:12}}> <div style={{padding:"8px 13px",fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:".08em",color:V[res.vk].c,borderBottom:`1px solid ${t.border}`}}>{V[res.vk].l}</div> <div style={{padding:13,color:t.cream,fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{res.text}</div> </div>} {evals.length>0&&<><div style={{height:1,background:t.border,margin:"4px 0 12px"}}/><div style={{fontSize:10,color:t.fog,textTransform:"uppercase",marginBottom:8}}>Past Evaluations</div> {evals.slice(0,8).map((e,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 11px",background:t.ash,borderRadius:6,marginBottom:5,border:`1px solid ${t.border}`}}> <div style={{flex:1}}><div style={{fontSize:13,color:t.pearl}}>{e.name}</div><div style={{fontSize:11,color:t.fog}}>{e.house||"—"} · {e.date}</div></div> <span style={{fontSize:10,padding:"2px 7px",borderRadius:10,background:t.ash,color:t.silver,border:`1px solid ${t.border}`}}>{e.verdict}</span>
 </div>)}
 </>}
 
   </div>;
 }
 
-function Disp({coll,t,wx}){
+function Disp({coll,t,wx,weather}){
 const [disp,setDisp]=useState(()=>{try{return JSON.parse(localStorage.getItem(“fvD6”))||coll.slice(0,30).map(f=>f.n);}catch{return coll.slice(0,30).map(f=>f.n);}});
 const [editing,setEditing]=useState(false);
 const [season,setSeason]=useState(“Spring (Apr-May)”); const [size,setSize]=useState(“30”);
-const A=useAI();
+const A=useAI(coll,weather);
 useEffect(()=>{try{localStorage.setItem(“fvD6”,JSON.stringify(disp));}catch{}},[disp]);
 return <div>
 <div style={ttl(t)}>Display & Rotate</div>
@@ -612,7 +884,7 @@ return <div>
 <div style={{marginBottom:10}}><label style={lbl(t)}>Display Size</label>
 <select style={inp(t)} value={size} onChange={e=>setSize(e.target.value)}>{[“10”,“15”,“20”,“25”,“30”].map(n=><option key={n}>{n}</option>)}</select>
 </div>
-<button style={{…btnG(t),width:“100%”}} onClick={()=>A.run(`Suggest a ${size}-bottle seasonal display for Arlington VA, season: ${season}. Weather: ${wx()}. Include anchors, daily drivers, statement pieces, one wildcard. List each with one-line reason.`)}>Generate Rotation</button>
+<button style={{…btnG(t),width:“100%”}} onClick={()=>A.run(“Suggest a “+size+”-bottle seasonal display for Arlington VA. Season: “+season+”. Weather: “+wx()+”. Include anchors, daily drivers, statement pieces, one wildcard.”)}>Generate Rotation</button>
 <AIB res={A.res} load={A.load} t={t}/>
 </div>
 </div>
@@ -620,7 +892,7 @@ return <div>
   </div>;
 }
 
-function Journal({coll,journal,setJournal,t}){
+function Journal({coll,journal,setJournal,t,weather}){
 const [frag,setFrag]=useState(””); const [occ,setOcc]=useState(“Casual”);
 const [rating,setRating]=useState(“★★★★★”); const [note,setNote]=useState(””);
 function add(){
@@ -660,11 +932,11 @@ return <div>
   </div>;
 }
 
-function Ana({coll,journal,t}){
-const A=useAI();
+function Ana({coll,journal,t,weather}){
+const A=useAI(coll,weather);
 const hc={};coll.forEach(f=>{hc[f.h]=(hc[f.h]||0)+1});
 const sh=Object.entries(hc).sort((a,b)=>b[1]-a[1]);
-const dc={};coll.forEach(f=>f.d.forEach(d=>{const k=d.toLowerCase();dc[k]=(dc[k]||0)+1}));
+const dc={};coll.forEach(f=>(f.d||[]).forEach(d=>{const k=d.toLowerCase();dc[k]=(dc[k]||0)+1}));
 const sd=Object.entries(dc).sort((a,b)=>b[1]-a[1]).slice(0,12);
 const maxH=sh[0]?.[1]||1,maxD=sd[0]?.[1]||1;
 return <div>
@@ -696,7 +968,7 @@ return <div>
 <div style={card(t)}>
 <div style={{fontSize:10,color:t.fog,textTransform:“uppercase”,marginBottom:6}}>Collection Strategy</div>
 <div style={{fontFamily:“Georgia,serif”,fontSize:15,color:t.pearl,marginBottom:10}}>AI Analysis</div>
-<button style={btnG(t)} onClick={()=>A.run(`Collection strategy. Total: ${coll.length} bottles. Houses: ${sh.map(([h,c])=>`${h}(${c})`).join(", ")}. Top DNA: ${sd.slice(0,8).map(([d,c])=>`${d}(${c})`).join(", ")}. Wears logged: ${journal.length}.\n1. Collection strengths\n2. DNA gaps\n3. Top 3 bottles to add next (specific names)\n4. Top 3 destash candidates (specific bottles AJ owns)\n5. One key strategic advice`)}>Get Collection Insights</button>
+<button style={btnG(t)} onClick={()=>A.run(“Collection strategy. Total: “+coll.length+” bottles. Houses: “+sh.map(([h,c])=>h+”(”+c+”)”).join(”, “)+”. Top DNA: “+sd.slice(0,8).map(([d,c])=>d+”(”+c+”)”).join(”, “)+”. Wears logged: “+journal.length+”.\n1. Collection strengths\n2. DNA gaps\n3. Top 3 bottles to add next\n4. Top 3 destash candidates\n5. One key strategic advice”)}>Get Collection Insights</button>
 <AIB res={A.res} load={A.load} t={t}/>
 </div>
 
